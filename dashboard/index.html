@@ -1442,26 +1442,35 @@ function renderCalendar() {
   const NICHE_EMOJI = { 'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵' };
 
   for (let i = 0; i < 28 + firstDow; i++) {
-    const d     = new Date(gridStart);
+    const d       = new Date(gridStart);
     d.setDate(gridStart.getDate() + i);
-    const key   = dateKey(d);
+    const key     = dateKey(d);
+    const inRange = d >= startDate && d <= today;
     const isToday = dateKey(d) === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
     const monKey  = getMonday(d).toISOString().split('T')[0];
     const plan    = calPlans[key] || calPlans[monKey];
     const planColor = plan ? (NICHE_COLORS[plan.niche] || '#e8a050') : null;
+    const emoji   = plan ? (NICHE_EMOJI[plan.niche] || '📅') : '';
+
+    // Cellule vide pour les jours de padding (avant la fenêtre 28j)
+    if (!inRange && !isToday) {
+      html += `<div class="cal-day" style="opacity:0.15;pointer-events:none"><span style="font-size:11px">${d.getDate()}</span></div>`;
+      continue;
+    }
 
     let cls = 'cal-day';
     if (isToday) cls += ' today';
-    if (isDone)  cls += ' done';
+    if (isDone && !plan) cls += ' done';
 
-    const dayNum  = d.getDate();
-    const emoji   = plan ? NICHE_EMOJI[plan.niche] || '📅' : '';
-    const dot     = plan ? `<span class="cal-dot" style="background:${planColor}"></span>` : '';
+    // Style très visible pour les jours planifiés
+    const planStyle = plan && !isDone
+      ? `background:${planColor}22;border-color:${planColor};box-shadow:inset 0 0 0 1px ${planColor}55`
+      : '';
 
-    html += `<div class="${cls}" onclick="handleCalClick(event,'${key}')" style="${plan && !isDone ? 'border-color:'+planColor+'55' : ''}">
-      <span style="font-size:11px;line-height:1">${dayNum}</span>
-      ${emoji ? `<span style="font-size:8px;line-height:1;display:block">${emoji}</span>` : dot}
+    html += `<div class="${cls}" onclick="handleCalClick(event,'${key}')" style="${planStyle}">
+      <span style="font-size:${plan?'10px':'12px'};font-weight:${plan?'800':'600'};line-height:1;color:${plan && !isDone ? planColor : 'inherit'}">${d.getDate()}</span>
+      ${emoji ? `<span style="font-size:10px;line-height:1;display:block;margin-top:1px">${emoji}</span>` : ''}
     </div>`;
   }
 
