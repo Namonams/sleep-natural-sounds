@@ -463,6 +463,7 @@
     font-weight: 800;
   }
   .cal-day.today { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,160,80,0.3); }
+  .cal-day.planned-future { opacity: 0.85; }
 
   .cal-streak { font-size: 12px; color: var(--muted); text-align: center; }
   .cal-streak strong { color: var(--gold); }
@@ -907,20 +908,20 @@
     </div>
   </section>
 
-  <!-- EDITORIAL CALENDAR -->
-  <section class="card fade-up" aria-label="Calendrier éditorial">
-    <div class="table-header">
-      <div class="card-title" style="margin-bottom:0">📅 Calendrier éditorial — 1 vidéo / semaine</div>
-      <button class="btn-add" onclick="openCalModal()">＋ Planifier</button>
+  <!-- CALENDAR + NOTES -->
+  <section class="two-col" aria-label="Calendrier et notes">
+    <div class="card fade-up">
+      <div class="table-header" style="margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">📅 Calendrier — cliquer pour planifier</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-streak" id="calStreak">Série : <strong>0 sem</strong></div>
     </div>
-    <div id="editorialCal" style="margin-top:16px;display:flex;flex-direction:column;gap:8px"></div>
-  </section>
-
-  <!-- NOTES -->
-  <section class="card fade-up" aria-label="Notes">
-    <div class="card-title">📝 Notes &amp; actions</div>
-    <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici…" oninput="saveNotes()"></textarea>
-    <div class="notes-save-hint" id="notesHint">Sauvegarde auto activée</div>
+    <div class="card fade-up">
+      <div class="card-title">📝 Notes &amp; actions</div>
+      <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici…" oninput="saveNotes()"></textarea>
+      <div class="notes-save-hint" id="notesHint">Sauvegarde auto activée</div>
+    </div>
   </section>
 
 </main>
@@ -1406,39 +1407,72 @@ function renderCalendar() {
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  // Build 28 days starting from 28 days ago
+  // 28 jours passés + 14 futurs = 42 jours
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - 27);
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() + 14);
 
   const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-
   let html = dayNames.map(d => `<div class="cal-day-header">${d}</div>`).join('');
 
-  // Figure out starting offset (Monday = 0)
-  const firstDow = (startDate.getDay() + 6) % 7; // 0=Mon
-  // We'll just render 28 boxes; start from the monday of the week containing startDate
+  const firstDow = (startDate.getDay() + 6) % 7;
   const gridStart = new Date(startDate);
   gridStart.setDate(gridStart.getDate() - firstDow);
+  const totalDays = 42 + firstDow;
 
-  for (let i = 0; i < 28 + firstDow; i++) {
+  const calPlans = DB.editorialCal || {};
+
+  for (let i = 0; i < totalDays; i++) {
     const d = new Date(gridStart);
     d.setDate(gridStart.getDate() + i);
-    const key = dateKey(d);
+    const key     = dateKey(d);
     const isToday = dateKey(d) === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
-    const isBefore= d < startDate;
-    const isAfter = d > today;
+    const isFuture= d > today;
+
+    // Chercher un plan sur ce jour ou dans sa semaine
+    const monKey  = getMonday(d).toISOString().split('T')[0];
+    const plan    = calPlans[key] || calPlans[monKey];
+    const planColor = plan ? (NICHE_COLORS[plan.niche] || 'var(--gold)') : null;
 
     let cls = 'cal-day';
     if (isToday) cls += ' today';
     if (isDone)  cls += ' done';
+    if (isFuture && plan) cls += ' planned-future';
 
     const dayNum = d.getDate();
-    html += `<div class="${cls}" data-key="${key}" onclick="toggleCalDay('${key}')" title="${key}">${dayNum}</div>`;
+    const dot = plan && !isDone
+      ? `<span style="display:block;width:5px;height:5px;border-radius:50%;background:${planColor};margin:1px auto 0"></span>`
+      : '';
+
+    html += `<div class="${cls}" data-key="${key}"
+      onclick="handleCalClick('${key}')"
+      title="${plan ? plan.title || plan.niche : key}"
+      style="${plan && !isDone ? 'border-color:' + planColor + '33' : ''}"
+    >${dayNum}${dot}</div>`;
   }
 
   grid.innerHTML = html;
   updateCalStreak();
+}
+
+function handleCalClick(key) {
+  const calPlans = DB.editorialCal || {};
+  const monKey   = getMonday(new Date(key)).toISOString().split('T')[0];
+  const plan     = calPlans[key] || calPlans[monKey];
+
+  if (plan) {
+    // Afficher détails + option modifier
+    const sm = CAL_STATUS_META[plan.status] || CAL_STATUS_META['planned'];
+    const color = NICHE_COLORS[plan.niche] || 'var(--gold)';
+    if (confirm(`📅 ${key}\n\n${plan.title || NICHES[plan.niche] || plan.niche}\nStatut: ${sm.label}\n\nModifier ?`)) {
+      openCalModal(monKey);
+    }
+  } else {
+    // Aucun plan — proposer de planifier
+    openCalModal(key);
+  }
 }
 
 function toggleCalDay(key) {
@@ -1766,7 +1800,7 @@ function init() {
   renderStats();
   renderVideos();
   seedEditorialCalFromVideos();
-  renderEditorialCal();
+  renderCalendar();
   initNotes();
   updateEncodeBar();
   setInterval(updateEncodeBar, 30000);
