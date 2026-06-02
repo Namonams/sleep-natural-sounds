@@ -488,6 +488,7 @@
 
   .cal-streak { font-size: 12px; color: var(--muted); text-align: center; }
   .cal-streak strong { color: var(--gold); }
+  .cal-day.other-month { opacity: 0.22; pointer-events: none; }
 
   /* ── Notes ── */
   .notes-area {
@@ -932,11 +933,13 @@
   <!-- CALENDAR + NOTES -->
   <section class="two-col" aria-label="Calendrier et notes">
     <div class="card fade-up">
-      <div class="table-header" style="margin-bottom:14px">
-        <div class="card-title" style="margin-bottom:0">📅 Calendrier — cliquer pour planifier</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <button onclick="changeMonth(-1)" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px">‹</button>
+        <div id="calMonthLabel" style="font-size:13px;font-weight:800;color:var(--cream);text-transform:uppercase;letter-spacing:1px"></div>
+        <button onclick="changeMonth(1)"  style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px">›</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-streak" id="calStreak">Série : <strong>0 sem</strong></div>
+      <div class="cal-streak" id="calStreak" style="margin-top:10px">Série : <strong>0 sem</strong></div>
     </div>
     <div class="card fade-up">
       <div class="card-title">📝 Notes &amp; actions</div>
@@ -1423,68 +1426,70 @@ function saveVideo() {
 // ─────────────────────────────────────────────
 // CALENDAR
 // ─────────────────────────────────────────────
-function renderCalendar() {
-  const grid = document.getElementById('calGrid');
-  const today = new Date();
-  today.setHours(0,0,0,0);
+let _calYear, _calMonth;
 
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 27);
+function renderCalendar() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (_calYear === undefined) { _calYear = today.getFullYear(); _calMonth = today.getMonth(); }
+
+  const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('calMonthLabel').textContent = MONTHS_FR[_calMonth] + ' ' + _calYear;
+
+  const firstDay  = new Date(_calYear, _calMonth, 1);
+  const lastDay   = new Date(_calYear, _calMonth + 1, 0);
+  const startPad  = (firstDay.getDay() + 6) % 7; // 0=Mon
+  const endPad    = (7 - lastDay.getDay()) % 7 === 7 ? 0 : (7 - lastDay.getDay()) % 7;
+  // Fix sunday=0
+  const endPadFix = lastDay.getDay() === 0 ? 0 : 7 - lastDay.getDay();
 
   const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   let html = dayNames.map(d => `<div class="cal-day-header">${d}</div>`).join('');
 
-  const firstDow = (startDate.getDay() + 6) % 7;
-  const gridStart = new Date(startDate);
-  gridStart.setDate(gridStart.getDate() - firstDow);
+  const calPlans = DB.editorialCal || {};
+  const NICHE_EMOJI = {'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵'};
 
-  for (let i = 0; i < 28 + firstDow; i++) {
-    const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
-    const key = dateKey(d);
-    const isToday = dateKey(d) === dateKey(today);
+  // Padding début (mois précédent) — grisé, non cliquable
+  for (let i = startPad - 1; i >= 0; i--) {
+    const d = new Date(_calYear, _calMonth, -i);
+    html += `<div class="cal-day other-month">${d.getDate()}</div>`;
+  }
+
+  // Jours du mois
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const d     = new Date(_calYear, _calMonth, day);
+    const key   = dateKey(d);
+    const isToday = key === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
+    const monKey  = getMonday(d).toISOString().split('T')[0];
+    const plan    = calPlans[key] || calPlans[monKey];
+    const color   = plan ? (NICHE_COLORS[plan.niche] || '#e8a050') : null;
+    const emoji   = plan ? (NICHE_EMOJI[plan.niche] || '📅') : '';
 
     let cls = 'cal-day';
     if (isToday) cls += ' today';
     if (isDone)  cls += ' done';
 
-    const dayNum = d.getDate();
-    html += `<div class="${cls}" data-key="${key}" onclick="toggleCalDay('${key}')" title="${key}">${dayNum}</div>`;
+    const planStyle = plan && !isDone ? `outline:2px solid ${color};outline-offset:-2px;position:relative` : 'position:relative';
+    const planBadge = emoji ? `<span style="position:absolute;top:2px;right:2px;font-size:7px;line-height:1">${emoji}</span>` : '';
+    const onclick   = plan ? `handleCalClick(event,'${key}')` : `toggleCalDay('${key}')`;
+
+    html += `<div class="${cls}" data-key="${key}" onclick="${onclick}" title="${plan?.title||key}" style="${planStyle}">${day}${planBadge}</div>`;
   }
 
-  grid.innerHTML = html;
+  // Padding fin (mois suivant) — grisé
+  for (let i = 1; i <= endPadFix; i++) {
+    html += `<div class="cal-day other-month">${i}</div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
   updateCalStreak();
-  overlayCalendarPlans();
 }
 
-function overlayCalendarPlans() {
-  const calPlans = DB.editorialCal || {};
-  const NICHE_EMOJI = {'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵'};
-
-  document.querySelectorAll('#calGrid [data-key]').forEach(cell => {
-    const key    = cell.dataset.key;
-    const monKey = getMonday(new Date(key)).toISOString().split('T')[0];
-    const plan   = calPlans[key] || calPlans[monKey];
-    if (!plan) return;
-
-    const color = NICHE_COLORS[plan.niche] || '#e8a050';
-    const emoji = NICHE_EMOJI[plan.niche] || '📅';
-
-    // Indicateur minimal: emoji petit en coin + ring coloré
-    cell.style.outline = `2px solid ${color}`;
-    cell.style.outlineOffset = '-2px';
-    cell.title = plan.title || plan.niche;
-
-    const badge = document.createElement('span');
-    badge.style.cssText = 'position:absolute;top:1px;right:1px;font-size:7px;line-height:1;pointer-events:none';
-    badge.textContent = emoji;
-    cell.style.position = 'relative';
-    cell.appendChild(badge);
-
-    // Remplacer click: détails si plan, sinon toggle original
-    cell.onclick = (e) => handleCalClick(e, key);
-  });
+function changeMonth(dir) {
+  _calMonth += dir;
+  if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+  if (_calMonth < 0)  { _calMonth = 11; _calYear--; }
+  renderCalendar();
 }
 
 let _activePop = null;
