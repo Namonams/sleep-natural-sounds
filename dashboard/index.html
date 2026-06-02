@@ -1085,12 +1085,12 @@ function saveData(data) {
 
 let DB = loadData();
 
-// Force migration editorialCal si absent
-if (!DB.editorialCal || Object.keys(DB.editorialCal).length === 0) {
-  DB.editorialCal = {
-    '2026-06-01': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public' },
-    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'encoding' }
-  };
+// Force migration editorialCal — publication chaque MARDI à 07:00
+if (!DB.editorialCal || !DB.editorialCal['2026-06-02']) {
+  DB.editorialCal = Object.assign(DB.editorialCal || {}, {
+    '2026-06-02': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public',   ytId: '10KZSY5Y-MM', pubTime: '07:00' },
+    '2026-06-10': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'encoding', ytId: null,           pubTime: '07:00' }
+  });
   saveData(DB);
 }
 
@@ -1469,8 +1469,7 @@ function renderCalendar() {
     const key   = dateKey(d);
     const isToday = key === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
-    const monKey  = getMonday(d).toISOString().split('T')[0];
-    const plan    = calPlans[key] || calPlans[monKey];
+    const plan    = calPlans[key]; // lookup par date exacte (mardi)
     const color   = plan ? (NICHE_COLORS[plan.niche] || '#e8a050') : null;
     const emoji   = plan ? (NICHE_EMOJI[plan.niche] || '📅') : '';
 
@@ -1517,19 +1516,39 @@ function handleCalClick(e, key) {
   const rect      = dayEl.getBoundingClientRect();
 
   if (plan) {
-    const sm    = CAL_STATUS_META[plan.status] || CAL_STATUS_META['planned'];
-    const color = NICHE_COLORS[plan.niche] || '#e8a050';
-    const nLabel= NICHES[plan.niche] || plan.niche;
-    const pop   = document.createElement('div');
+    const sm     = CAL_STATUS_META[plan.status] || CAL_STATUS_META['planned'];
+    const color  = NICHE_COLORS[plan.niche] || '#e8a050';
+    const nLabel = NICHES[plan.niche] || plan.niche;
+    const video  = plan.ytId ? DB.videos.find(v => v.youtubeId === plan.ytId) : null;
+
+    const statsHtml = video ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0;padding:10px;background:var(--bg);border-radius:6px">
+        <div style="text-align:center">
+          <div style="font-size:16px;font-weight:800;color:var(--cream)">${(video.views||0).toLocaleString('fr-FR')}</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Vues</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:16px;font-weight:800;color:var(--cream)">${(video.watchHours||0).toLocaleString('fr-FR')}h</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Watch time</div>
+        </div>
+      </div>` : '';
+
+    const ytLink = plan.ytId
+      ? `<a href="https://youtube.com/watch?v=${plan.ytId}" target="_blank" style="font-size:10px;color:${color};text-decoration:none;display:block;margin-bottom:8px">▶ Voir sur YouTube →</a>`
+      : '';
+
+    const pop = document.createElement('div');
     pop.className = 'day-pop';
     pop.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
-    pop.style.left = Math.min(rect.left, window.innerWidth - 270) + 'px';
+    pop.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 270) + 'px';
     pop.innerHTML = `
       <div class="day-pop-title" style="color:${color}">${plan.title || nLabel}</div>
-      <div class="day-pop-meta">${key} · <span style="color:${color}">${nLabel}</span> · ${sm.label}</div>
+      <div class="day-pop-meta" style="margin-bottom:4px">${key} · ${plan.pubTime||'07:00'} · <span style="color:${color}">${nLabel}</span></div>
+      <div style="font-size:11px;margin-bottom:6px"><span style="padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:700">${sm.label}</span></div>
+      ${ytLink}${statsHtml}
       <div class="day-pop-btns">
-        <button onclick="closePop();openCalModal('${monKey}')">✏️ Modifier</button>
-        <button onclick="closePop();deleteCalEntry('${monKey}')">🗑️ Supprimer</button>
+        <button onclick="closePop();openCalModal('${key}')">✏️ Modifier</button>
+        <button onclick="closePop();deleteCalEntry('${key}')">🗑️ Retirer</button>
       </div>`;
     document.body.appendChild(pop);
     _activePop = pop;
