@@ -695,6 +695,21 @@
 <!-- MAIN -->
 <main id="main">
 
+  <!-- NEXT VIDEO COUNTDOWN -->
+  <section class="card fade-up" id="nextVideoCard" style="background:linear-gradient(135deg,#151009,#1e1208);border-color:#2a1f10">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Prochaine publication</div>
+        <div id="nextVideoTitle" style="font-size:16px;font-weight:800;color:var(--cream)">Ancient Campfire · 11H</div>
+        <div id="nextVideoDate" style="font-size:12px;color:var(--gold);margin-top:3px">Lundi 9 juin 2026 · 07:00</div>
+      </div>
+      <div id="countdown" style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;font-variant-numeric:tabular-nums">--:--:--:--</div>
+    </div>
+    <div style="height:4px;background:var(--surface2);border-radius:2px;margin-top:14px;overflow:hidden">
+      <div id="countdownFill" style="height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 1s ease;width:0%"></div>
+    </div>
+  </section>
+
   <!-- STATS ROW -->
   <section class="stats-row" id="statsRow" aria-label="Statistiques principales">
     <div class="stat-card fade-up" id="statSubs" onclick="startEditStat('subscribers')" title="Cliquer pour modifier">
@@ -1399,6 +1414,48 @@ document.addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────
+// COUNTDOWN PROCHAINE VIDÉO
+// ─────────────────────────────────────────────
+const NEXT_VIDEOS = [
+  { title: 'Ancient Campfire · 11H', date: '2026-06-09T07:00:00+02:00' },
+  // Ajouter prochaines vidéos ici
+];
+
+function updateCountdown() {
+  if (!NEXT_VIDEOS.length) return;
+  const next    = NEXT_VIDEOS[0];
+  const target  = new Date(next.date).getTime();
+  const now     = Date.now();
+  const diff    = target - now;
+
+  const cdEl    = document.getElementById('countdown');
+  const fillEl  = document.getElementById('countdownFill');
+  const titleEl = document.getElementById('nextVideoTitle');
+
+  if (!cdEl) return;
+
+  if (diff <= 0) {
+    cdEl.textContent = 'LIVE ✅';
+    if (fillEl) fillEl.style.width = '100%';
+    return;
+  }
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  cdEl.textContent = `${d}j ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+
+  // Barre progression (7 jours = période standard)
+  const totalWindow = 7 * 86400000;
+  const elapsed     = totalWindow - diff;
+  const pct         = Math.min(Math.max(elapsed / totalWindow * 100, 0), 100);
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (titleEl) titleEl.textContent = next.title;
+}
+
+// ─────────────────────────────────────────────
 // YOUTUBE STATS AUTO-SYNC (lit yt_stats.json)
 // ─────────────────────────────────────────────
 async function syncYTStats() {
@@ -1426,18 +1483,32 @@ async function syncYTStats() {
     renderProgress();
   }
 
-  // Mise à jour vidéos depuis YT
+  // Stats live par vidéo depuis YT
   if (data.videos && data.videos.length > 0) {
     for (const ytV of data.videos) {
       const local = DB.videos.find(v => v.youtubeId === ytV.id);
       if (local) {
         local.views      = ytV.views;
-        local.watchHours = Math.round(ytV.views * 0.5); // estimé si analytics limités
+        local.watchHours = ytV.watchTimeHours || Math.round(ytV.views * 0.5);
         if (ytV.status === 'public' && local.status !== 'monetized') local.status = 'public';
+        if (ytV.publishedAt && !local.uploadDate) {
+          local.uploadDate = ytV.publishedAt.split('T')[0];
+        }
       }
     }
     saveData(DB);
     renderVideos();
+
+    // Calendrier auto — marquer jours de publication
+    for (const ytV of data.videos) {
+      if (ytV.publishedAt) {
+        const d = ytV.publishedAt.split('T')[0];
+        if (!DB.calendar) DB.calendar = {};
+        DB.calendar[d] = true;
+      }
+    }
+    saveData(DB);
+    renderCalendar();
   }
 
   // Timestamp dernière sync
@@ -1497,7 +1568,9 @@ function init() {
   updateEncodeBar();
   setInterval(updateEncodeBar, 30000);
   syncYTStats();
-  setInterval(syncYTStats, 5 * 60 * 1000); // refresh toutes les 5 min
+  setInterval(syncYTStats, 5 * 60 * 1000);
+  updateCountdown();
+  setInterval(updateCountdown, 1000); // countdown au seconde près
 }
 
 init();
