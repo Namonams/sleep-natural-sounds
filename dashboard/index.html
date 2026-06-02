@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sleep Natural Sounds — CRM Dashboard</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sleep NS">
+<meta name="theme-color" content="#E8A050">
+<link rel="manifest" href="manifest.json">
+<title>Sleep Natural Sounds — Dashboard</title>
 <style>
   :root {
     --bg: #0D0A08;
@@ -960,6 +966,24 @@ function saveData(data) {
 }
 
 let DB = loadData();
+
+// Migration: sync vidéos depuis SEED si ID YouTube présent dans SEED mais pas dans DB
+(function migrate() {
+  let changed = false;
+  for (const sv of SEED.videos) {
+    const existing = DB.videos.find(v => v.id === sv.id);
+    if (existing) {
+      // Mise à jour titre + youtubeId + statut si SEED plus récent
+      if (sv.youtubeId && existing.youtubeId !== sv.youtubeId) { existing.youtubeId = sv.youtubeId; changed = true; }
+      if (sv.status === 'public' && existing.status !== 'monetized') { existing.status = sv.status; changed = true; }
+      if (sv.uploadDate && !existing.uploadDate) { existing.uploadDate = sv.uploadDate; changed = true; }
+      if (sv.title !== existing.title) { existing.title = sv.title; changed = true; }
+    } else {
+      DB.videos.push(sv); changed = true;
+    }
+  }
+  if (changed) saveData(DB);
+})();
 
 // ─────────────────────────────────────────────
 // NICHE CONFIG
