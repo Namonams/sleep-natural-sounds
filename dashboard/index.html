@@ -587,6 +587,38 @@
   /* ── Empty state ── */
   .empty-row td { text-align: center; color: var(--muted); padding: 32px; font-style: italic; }
 
+  /* ── Editorial Calendar ── */
+  .week-row {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition);
+    cursor: pointer;
+  }
+  .week-row:hover { border-color: var(--gold-dim); }
+  .week-row.current { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(232,160,80,0.2); }
+  .week-label { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .week-content { display: flex; align-items: center; gap: 10px; }
+  .week-niche { font-size: 13px; font-weight: 700; color: var(--cream); }
+  .week-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-planned   { background: var(--muted); }
+  .dot-encoding  { background: var(--warning); animation: pulse 1.5s infinite; }
+  .dot-uploaded  { background: #93c5fd; }
+  .dot-public    { background: var(--success); }
+  .dot-monetized { background: var(--gold); }
+  .week-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+  .week-actions { display: flex; gap: 6px; }
+
+  @media (max-width: 600px) {
+    .week-row { grid-template-columns: 80px 1fr; }
+    .week-actions { display: none; }
+  }
+
   /* ── Team ── */
   .team-grid {
     display: grid;
@@ -875,21 +907,67 @@
     </div>
   </section>
 
-  <!-- CALENDAR + NOTES -->
-  <section class="two-col" aria-label="Calendrier et notes">
-    <div class="card fade-up">
-      <div class="card-title">📅 Calendrier 28 jours — activité</div>
-      <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-streak" id="calStreak">Série actuelle : <strong>0 semaine(s)</strong></div>
+  <!-- EDITORIAL CALENDAR -->
+  <section class="card fade-up" aria-label="Calendrier éditorial">
+    <div class="table-header">
+      <div class="card-title" style="margin-bottom:0">📅 Calendrier éditorial — 1 vidéo / semaine</div>
+      <button class="btn-add" onclick="openCalModal()">＋ Planifier</button>
     </div>
-    <div class="card fade-up">
-      <div class="card-title">📝 Notes &amp; actions</div>
-      <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici…" oninput="saveNotes()"></textarea>
-      <div class="notes-save-hint" id="notesHint">Sauvegarde auto activée</div>
-    </div>
+    <div id="editorialCal" style="margin-top:16px;display:flex;flex-direction:column;gap:8px"></div>
+  </section>
+
+  <!-- NOTES -->
+  <section class="card fade-up" aria-label="Notes">
+    <div class="card-title">📝 Notes &amp; actions</div>
+    <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici…" oninput="saveNotes()"></textarea>
+    <div class="notes-save-hint" id="notesHint">Sauvegarde auto activée</div>
   </section>
 
 </main>
+
+<!-- PLAN WEEK MODAL -->
+<div class="modal-overlay" id="calModalOverlay" onclick="if(event.target===this)closeCalModal()">
+  <div class="modal" role="dialog">
+    <div class="modal-title">📅 Planifier une semaine</div>
+    <div class="form-group">
+      <label class="form-label">Semaine du</label>
+      <input class="form-input" id="cmWeek" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Niche / Thème</label>
+      <select class="form-select" id="cmNiche">
+        <option value="baby-sleep">👶 Baby Sleep (Pink Noise)</option>
+        <option value="campfire">🔥 Campfire (Feu de camp)</option>
+        <option value="rain">🌧️ Rain (Pluie)</option>
+        <option value="forest">🌲 Forest Night (Forêt)</option>
+        <option value="ocean">🌊 Ocean (Océan)</option>
+        <option value="winter">❄️ Winter (Hiver)</option>
+        <option value="thunder">⛈️ Thunderstorm (Orage)</option>
+        <option value="brown-noise">🟤 Brown Noise</option>
+        <option value="other">🎵 Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titre prévu</label>
+      <input class="form-input" id="cmTitle" type="text" placeholder="ex: Rain on Window · 11H Deep Sleep">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Statut</label>
+      <select class="form-select" id="cmStatus">
+        <option value="planned">📋 Planifié</option>
+        <option value="encoding">⚙️ En encodage</option>
+        <option value="uploaded">🔗 Uploadé</option>
+        <option value="public">✅ Public</option>
+        <option value="monetized">💰 Monétisé</option>
+      </select>
+    </div>
+    <input type="hidden" id="cmEditId">
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCalModal()">Annuler</button>
+      <button class="btn-save" onclick="saveCalEntry()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <!-- ADD VIDEO MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
@@ -1414,6 +1492,130 @@ document.addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────
+// EDITORIAL CALENDAR
+// ─────────────────────────────────────────────
+const NICHE_COLORS = {
+  'baby-sleep': '#a78bfa', 'campfire': '#f97316', 'rain': '#38bdf8',
+  'forest': '#4ade80', 'ocean': '#06b6d4', 'winter': '#e2e8f0',
+  'thunder': '#facc15', 'brown-noise': '#a16207', 'other': '#e8a050'
+};
+const CAL_STATUS_META = {
+  'planned':   { label: 'Planifié',    dot: 'dot-planned'  },
+  'encoding':  { label: 'Encodage',   dot: 'dot-encoding'  },
+  'uploaded':  { label: 'Uploadé',    dot: 'dot-uploaded'  },
+  'public':    { label: 'Public ✅',   dot: 'dot-public'   },
+  'monetized': { label: '💰 Monétisé', dot: 'dot-monetized' }
+};
+
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay() || 7;
+  if (day !== 1) dt.setDate(dt.getDate() - day + 1);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function renderEditorialCal() {
+  const el      = document.getElementById('editorialCal');
+  if (!el) return;
+  const today   = new Date();
+  const weeks   = [];
+  // Afficher 8 semaines: 2 passées + semaine actuelle + 5 futures
+  for (let i = -2; i <= 5; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i * 7);
+    weeks.push(getMonday(d));
+  }
+
+  const cal = DB.editorialCal || {};
+  el.innerHTML = weeks.map(weekStart => {
+    const key     = weekStart.toISOString().split('T')[0];
+    const entry   = cal[key];
+    const isCur   = getMonday(today).toISOString().split('T')[0] === key;
+    const isPast  = weekStart < getMonday(today);
+    const label   = weekStart.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+    const endDate = new Date(weekStart); endDate.setDate(endDate.getDate() + 6);
+    const endLabel= endDate.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+
+    if (entry) {
+      const sm    = CAL_STATUS_META[entry.status] || CAL_STATUS_META['planned'];
+      const color = NICHE_COLORS[entry.niche] || 'var(--gold)';
+      const nLabel= NICHES[entry.niche] || entry.niche;
+      return `<div class="week-row${isCur?' current':''}" onclick="openCalModal('${key}')">
+        <div class="week-label">${label} → ${endLabel}</div>
+        <div class="week-content">
+          <div class="week-status-dot ${sm.dot}"></div>
+          <span style="font-size:18px">${nLabel.split(' ')[0]}</span>
+          <div>
+            <div class="week-niche" style="color:${color}">${entry.title||nLabel}</div>
+            <div style="font-size:10px;color:var(--muted)">${sm.label}</div>
+          </div>
+        </div>
+        <div class="week-actions">
+          <button class="action-btn" onclick="event.stopPropagation();openCalModal('${key}')">✏️</button>
+          <button class="action-btn del" onclick="event.stopPropagation();deleteCalEntry('${key}')">🗑️</button>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="week-row${isCur?' current':''}" onclick="openCalModal('${key}')">
+        <div class="week-label">${label} → ${endLabel}</div>
+        <div class="week-empty">+ Planifier une vidéo</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function openCalModal(weekKey) {
+  const cal   = DB.editorialCal || {};
+  const entry = weekKey ? cal[weekKey] : null;
+  document.getElementById('cmEditId').value  = weekKey || '';
+  document.getElementById('cmWeek').value    = weekKey || getMonday(new Date()).toISOString().split('T')[0];
+  document.getElementById('cmNiche').value   = entry?.niche || 'baby-sleep';
+  document.getElementById('cmTitle').value   = entry?.title || '';
+  document.getElementById('cmStatus').value  = entry?.status || 'planned';
+  document.getElementById('calModalOverlay').classList.add('open');
+}
+
+function closeCalModal() {
+  document.getElementById('calModalOverlay').classList.remove('open');
+}
+
+function saveCalEntry() {
+  const weekKey = document.getElementById('cmWeek').value;
+  if (!weekKey) return;
+  if (!DB.editorialCal) DB.editorialCal = {};
+  DB.editorialCal[getMonday(new Date(weekKey)).toISOString().split('T')[0]] = {
+    niche:  document.getElementById('cmNiche').value,
+    title:  document.getElementById('cmTitle').value,
+    status: document.getElementById('cmStatus').value
+  };
+  saveData(DB);
+  closeCalModal();
+  renderEditorialCal();
+}
+
+function deleteCalEntry(key) {
+  if (!DB.editorialCal) return;
+  delete DB.editorialCal[key];
+  saveData(DB);
+  renderEditorialCal();
+}
+
+// Pré-remplir avec vidéos existantes depuis DB.videos
+function seedEditorialCalFromVideos() {
+  if (!DB.editorialCal) DB.editorialCal = {};
+  for (const v of DB.videos || []) {
+    if (v.uploadDate) {
+      const key = getMonday(new Date(v.uploadDate)).toISOString().split('T')[0];
+      if (!DB.editorialCal[key]) {
+        DB.editorialCal[key] = { niche: v.niche, title: v.title, status: v.status };
+      }
+    }
+  }
+  saveData(DB);
+}
+
+// ─────────────────────────────────────────────
 // COUNTDOWN PROCHAINE VIDÉO
 // ─────────────────────────────────────────────
 const NEXT_VIDEOS = [
@@ -1563,14 +1765,15 @@ function init() {
   initHeader();
   renderStats();
   renderVideos();
-  renderCalendar();
+  seedEditorialCalFromVideos();
+  renderEditorialCal();
   initNotes();
   updateEncodeBar();
   setInterval(updateEncodeBar, 30000);
   syncYTStats();
   setInterval(syncYTStats, 5 * 60 * 1000);
   updateCountdown();
-  setInterval(updateCountdown, 1000); // countdown au seconde près
+  setInterval(updateCountdown, 1000);
 }
 
 init();
