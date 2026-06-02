@@ -1469,11 +1469,11 @@ function renderCalendar() {
     if (isToday) cls += ' today';
     if (isDone)  cls += ' done';
 
-    const planStyle = plan && !isDone ? `outline:2px solid ${color};outline-offset:-2px;position:relative` : 'position:relative';
-    const planBadge = emoji ? `<span style="position:absolute;top:2px;right:2px;font-size:7px;line-height:1">${emoji}</span>` : '';
-    const onclick   = plan ? `handleCalClick(event,'${key}')` : `toggleCalDay('${key}')`;
+    const planStyle  = plan ? `outline:2px solid ${color};outline-offset:-2px;position:relative;cursor:pointer` : 'position:relative;cursor:default';
+    const planBadge  = emoji ? `<span style="position:absolute;top:2px;right:2px;font-size:7px;line-height:1">${emoji}</span>` : '';
+    const onclickStr = plan ? `onclick="handleCalClick(event,'${key}')"` : '';
 
-    html += `<div class="${cls}" data-key="${key}" onclick="${onclick}" title="${plan?.title||key}" style="${planStyle}">${day}${planBadge}</div>`;
+    html += `<div class="${cls}" data-key="${key}" ${onclickStr} title="${plan ? (plan.title||plan.niche) : ''}" style="${planStyle}">${day}${planBadge}</div>`;
   }
 
   // Padding fin (mois suivant) — grisé
@@ -1690,9 +1690,11 @@ function deleteCalEntry(key) {
   renderEditorialCal();
 }
 
-// Pré-remplir avec vidéos existantes depuis DB.videos
+// Pré-remplir depuis DB.videos + planifications fixes
 function seedEditorialCalFromVideos() {
   if (!DB.editorialCal) DB.editorialCal = {};
+
+  // Depuis vidéos existantes
   for (const v of DB.videos || []) {
     if (v.uploadDate) {
       const key = getMonday(new Date(v.uploadDate)).toISOString().split('T')[0];
@@ -1701,6 +1703,15 @@ function seedEditorialCalFromVideos() {
       }
     }
   }
+
+  // Planifications fixes (à maintenir manuellement ici)
+  const fixedPlans = {
+    '2026-06-09': { niche: 'campfire', title: 'Ancient Campfire 11H', status: 'encoding' }
+  };
+  for (const [k, v] of Object.entries(fixedPlans)) {
+    if (!DB.editorialCal[k]) DB.editorialCal[k] = v;
+  }
+
   saveData(DB);
 }
 
