@@ -39,7 +39,9 @@ KHALWA (Maestro / Orchestrateur)
 
 ### Protocole d'exécution chaque session:
 1. **Khalwa lit ce CLAUDE.md** → identifie état du projet
-2. **Ouvrir dashboard** → `Start-Process "http://localhost:3000"` (relancer `node dashboard/server.js` si besoin)
+2. **Ouvrir dashboard** (deux options):
+   - Local: `Start-Process "http://localhost:3000"` (relancer `node dashboard/server.js` si besoin)
+   - Cloud H24: `Start-Process "https://namonams.github.io/sleep-natural-sounds"` ← accessible ordi éteint
 3. **Chaque agent scanne son domaine** → signale ce qui est bloquant ou à améliorer
 4. **Critique collective** sur chaque livrable avant validation
 5. **Décision finale** = Khalwa + confirmation utilisateur
