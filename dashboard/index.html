@@ -464,6 +464,27 @@
   }
   .cal-day.today { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,160,80,0.3); }
   .cal-day.planned-future { opacity: 0.85; }
+  .cal-day .cal-dot { position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; }
+  .cal-day { position:relative; }
+
+  /* ── Day Popover ── */
+  .day-pop {
+    position: fixed;
+    z-index: 500;
+    background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    min-width: 200px;
+    max-width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: fadeUp 0.15s ease;
+  }
+  .day-pop-title { font-size: 13px; font-weight: 800; color: var(--cream); margin-bottom: 4px; }
+  .day-pop-meta  { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .day-pop-btns  { display: flex; gap: 8px; }
+  .day-pop-btns button { flex: 1; font-size: 11px; font-weight: 700; padding: 6px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--cream); transition: border-color .2s; }
+  .day-pop-btns button:hover { border-color: var(--gold-dim); color: var(--gold); }
 
   .cal-streak { font-size: 12px; color: var(--muted); text-align: center; }
   .cal-streak strong { color: var(--gold); }
@@ -1407,11 +1428,8 @@ function renderCalendar() {
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  // 28 jours passés + 14 futurs = 42 jours
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - 27);
-  const endDate = new Date(today);
-  endDate.setDate(today.getDate() + 14);
 
   const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   let html = dayNames.map(d => `<div class="cal-day-header">${d}</div>`).join('');
@@ -1419,58 +1437,72 @@ function renderCalendar() {
   const firstDow = (startDate.getDay() + 6) % 7;
   const gridStart = new Date(startDate);
   gridStart.setDate(gridStart.getDate() - firstDow);
-  const totalDays = 42 + firstDow;
 
   const calPlans = DB.editorialCal || {};
+  const NICHE_EMOJI = { 'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵' };
 
-  for (let i = 0; i < totalDays; i++) {
-    const d = new Date(gridStart);
+  for (let i = 0; i < 28 + firstDow; i++) {
+    const d     = new Date(gridStart);
     d.setDate(gridStart.getDate() + i);
-    const key     = dateKey(d);
+    const key   = dateKey(d);
     const isToday = dateKey(d) === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
-    const isFuture= d > today;
-
-    // Chercher un plan sur ce jour ou dans sa semaine
     const monKey  = getMonday(d).toISOString().split('T')[0];
     const plan    = calPlans[key] || calPlans[monKey];
-    const planColor = plan ? (NICHE_COLORS[plan.niche] || 'var(--gold)') : null;
+    const planColor = plan ? (NICHE_COLORS[plan.niche] || '#e8a050') : null;
 
     let cls = 'cal-day';
     if (isToday) cls += ' today';
     if (isDone)  cls += ' done';
-    if (isFuture && plan) cls += ' planned-future';
 
-    const dayNum = d.getDate();
-    const dot = plan && !isDone
-      ? `<span style="display:block;width:5px;height:5px;border-radius:50%;background:${planColor};margin:1px auto 0"></span>`
-      : '';
+    const dayNum  = d.getDate();
+    const emoji   = plan ? NICHE_EMOJI[plan.niche] || '📅' : '';
+    const dot     = plan ? `<span class="cal-dot" style="background:${planColor}"></span>` : '';
 
-    html += `<div class="${cls}" data-key="${key}"
-      onclick="handleCalClick('${key}')"
-      title="${plan ? plan.title || plan.niche : key}"
-      style="${plan && !isDone ? 'border-color:' + planColor + '33' : ''}"
-    >${dayNum}${dot}</div>`;
+    html += `<div class="${cls}" onclick="handleCalClick(event,'${key}')" style="${plan && !isDone ? 'border-color:'+planColor+'55' : ''}">
+      <span style="font-size:11px;line-height:1">${dayNum}</span>
+      ${emoji ? `<span style="font-size:8px;line-height:1;display:block">${emoji}</span>` : dot}
+    </div>`;
   }
 
   grid.innerHTML = html;
   updateCalStreak();
 }
 
-function handleCalClick(key) {
-  const calPlans = DB.editorialCal || {};
-  const monKey   = getMonday(new Date(key)).toISOString().split('T')[0];
-  const plan     = calPlans[key] || calPlans[monKey];
+let _activePop = null;
+function closePop() {
+  if (_activePop) { _activePop.remove(); _activePop = null; }
+}
+
+function handleCalClick(e, key) {
+  e.stopPropagation();
+  closePop();
+
+  const calPlans  = DB.editorialCal || {};
+  const monKey    = getMonday(new Date(key)).toISOString().split('T')[0];
+  const plan      = calPlans[key] || calPlans[monKey];
+  const dayEl     = e.currentTarget;
+  const rect      = dayEl.getBoundingClientRect();
 
   if (plan) {
-    // Afficher détails + option modifier
-    const sm = CAL_STATUS_META[plan.status] || CAL_STATUS_META['planned'];
-    const color = NICHE_COLORS[plan.niche] || 'var(--gold)';
-    if (confirm(`📅 ${key}\n\n${plan.title || NICHES[plan.niche] || plan.niche}\nStatut: ${sm.label}\n\nModifier ?`)) {
-      openCalModal(monKey);
-    }
+    const sm    = CAL_STATUS_META[plan.status] || CAL_STATUS_META['planned'];
+    const color = NICHE_COLORS[plan.niche] || '#e8a050';
+    const nLabel= NICHES[plan.niche] || plan.niche;
+    const pop   = document.createElement('div');
+    pop.className = 'day-pop';
+    pop.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+    pop.style.left = Math.min(rect.left, window.innerWidth - 270) + 'px';
+    pop.innerHTML = `
+      <div class="day-pop-title" style="color:${color}">${plan.title || nLabel}</div>
+      <div class="day-pop-meta">${key} · <span style="color:${color}">${nLabel}</span> · ${sm.label}</div>
+      <div class="day-pop-btns">
+        <button onclick="closePop();openCalModal('${monKey}')">✏️ Modifier</button>
+        <button onclick="closePop();deleteCalEntry('${monKey}')">🗑️ Supprimer</button>
+      </div>`;
+    document.body.appendChild(pop);
+    _activePop = pop;
+    setTimeout(() => document.addEventListener('click', closePop, { once: true }), 50);
   } else {
-    // Aucun plan — proposer de planifier
     openCalModal(key);
   }
 }
