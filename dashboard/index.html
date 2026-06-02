@@ -1085,6 +1085,15 @@ function saveData(data) {
 
 let DB = loadData();
 
+// Force migration editorialCal si absent
+if (!DB.editorialCal || Object.keys(DB.editorialCal).length === 0) {
+  DB.editorialCal = {
+    '2026-06-01': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public' },
+    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'encoding' }
+  };
+  saveData(DB);
+}
+
 // Migration: sync vidéos depuis SEED si ID YouTube présent dans SEED mais pas dans DB
 (function migrate() {
   let changed = false;
