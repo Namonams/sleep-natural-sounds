@@ -1434,47 +1434,57 @@ function renderCalendar() {
   const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   let html = dayNames.map(d => `<div class="cal-day-header">${d}</div>`).join('');
 
-  const firstDow  = (startDate.getDay() + 6) % 7;
+  const firstDow = (startDate.getDay() + 6) % 7;
   const gridStart = new Date(startDate);
   gridStart.setDate(gridStart.getDate() - firstDow);
 
-  const calPlans  = DB.editorialCal || {};
-  const NICHE_EMOJI = {'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵'};
-
   for (let i = 0; i < 28 + firstDow; i++) {
-    const d   = new Date(gridStart);
+    const d = new Date(gridStart);
     d.setDate(gridStart.getDate() + i);
-    const key     = dateKey(d);
+    const key = dateKey(d);
     const isToday = dateKey(d) === dateKey(today);
     const isDone  = !!(DB.calendar && DB.calendar[key]);
-    const monKey  = getMonday(d).toISOString().split('T')[0];
-    const plan    = calPlans[key] || calPlans[monKey];
-    const planColor = plan ? (NICHE_COLORS[plan.niche] || '#e8a050') : null;
-    const emoji   = plan ? (NICHE_EMOJI[plan.niche] || '📅') : '';
 
     let cls = 'cal-day';
     if (isToday) cls += ' today';
     if (isDone)  cls += ' done';
 
     const dayNum = d.getDate();
-
-    if (plan) {
-      // Jour planifié: indicateur coloré discret + cliquable pour détails
-      html += `<div class="${cls}" onclick="handleCalClick(event,'${key}')"
-        style="border-color:${planColor}88;position:relative"
-        title="${plan.title||plan.niche}">
-        ${dayNum}
-        <span style="position:absolute;top:2px;right:2px;font-size:7px;line-height:1">${emoji}</span>
-        <span style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${planColor}"></span>
-      </div>`;
-    } else {
-      // Jour normal: comportement original exact
-      html += `<div class="${cls}" data-key="${key}" onclick="toggleCalDay('${key}')" title="${key}">${dayNum}</div>`;
-    }
+    html += `<div class="${cls}" data-key="${key}" onclick="toggleCalDay('${key}')" title="${key}">${dayNum}</div>`;
   }
 
   grid.innerHTML = html;
   updateCalStreak();
+  overlayCalendarPlans();
+}
+
+function overlayCalendarPlans() {
+  const calPlans = DB.editorialCal || {};
+  const NICHE_EMOJI = {'baby-sleep':'👶','campfire':'🔥','rain':'🌧️','forest':'🌲','ocean':'🌊','winter':'❄️','thunder':'⛈️','brown-noise':'🟤','other':'🎵'};
+
+  document.querySelectorAll('#calGrid [data-key]').forEach(cell => {
+    const key    = cell.dataset.key;
+    const monKey = getMonday(new Date(key)).toISOString().split('T')[0];
+    const plan   = calPlans[key] || calPlans[monKey];
+    if (!plan) return;
+
+    const color = NICHE_COLORS[plan.niche] || '#e8a050';
+    const emoji = NICHE_EMOJI[plan.niche] || '📅';
+
+    // Indicateur minimal: emoji petit en coin + ring coloré
+    cell.style.outline = `2px solid ${color}`;
+    cell.style.outlineOffset = '-2px';
+    cell.title = plan.title || plan.niche;
+
+    const badge = document.createElement('span');
+    badge.style.cssText = 'position:absolute;top:1px;right:1px;font-size:7px;line-height:1;pointer-events:none';
+    badge.textContent = emoji;
+    cell.style.position = 'relative';
+    cell.appendChild(badge);
+
+    // Remplacer click: détails si plan, sinon toggle original
+    cell.onclick = (e) => handleCalClick(e, key);
+  });
 }
 
 let _activePop = null;
