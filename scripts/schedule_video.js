@@ -5,8 +5,8 @@ const path = require('path');
 const SECRETS_FILE = path.join(__dirname, 'client_secrets.json');
 const TOKEN_FILE   = path.join(__dirname, '.yt_token.json');
 
-const VIDEO_ID    = '10KZSY5Y-MM';
-const PUBLISH_AT  = '2026-06-02T07:00:00+02:00'; // 7h AM Paris (CEST)
+const VIDEO_ID    = 'CAMPFIRE_ID_ICI'; // Remplacer après upload
+const PUBLISH_AT  = '2026-06-09T07:00:00+02:00'; // Lundi 9 juin 07:00 AM Paris (CEST)
 
 async function scheduleVideo() {
   const secrets = JSON.parse(fs.readFileSync(SECRETS_FILE));
