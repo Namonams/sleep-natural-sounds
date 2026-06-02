@@ -1379,8 +1379,13 @@ document.addEventListener('keydown', e => {
 // ─────────────────────────────────────────────
 async function syncYTStats() {
   let data;
+  const GITHUB_RAW = 'https://raw.githubusercontent.com/Namonams/sleep-natural-sounds/main/dashboard/yt_stats.json';
+  const LOCAL      = 'yt_stats.json';
   try {
-    const r = await fetch('yt_stats.json?t=' + Date.now());
+    // Essaie GitHub raw d'abord (H24), fallback local
+    let r;
+    try { r = await fetch(GITHUB_RAW + '?t=' + Date.now()); }
+    catch(e) { r = await fetch(LOCAL + '?t=' + Date.now()); }
     data = await r.json();
   } catch(e) { return; }
 
