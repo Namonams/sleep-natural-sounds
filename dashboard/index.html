@@ -750,6 +750,18 @@
 <!-- MAIN -->
 <main id="main">
 
+  <!-- IHSAN BANNER -->
+  <section style="background:linear-gradient(135deg,#0d0a08,#1a1208);border:1px solid #2a1f10;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Sleep Natural Sounds · Khalwa & co</div>
+      <div style="font-size:13px;color:var(--cream);font-weight:600">Excellence pour Allah — <span style="color:var(--gold)">Ihsan</span> sur chaque livrable</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:var(--muted)" id="lastSync">Sync YT: —</div>
+      <div style="font-size:10px;color:var(--muted)" id="currentWeekLabel"></div>
+    </div>
+  </section>
+
   <!-- NEXT VIDEO COUNTDOWN -->
   <section class="card fade-up" id="nextVideoCard" style="background:linear-gradient(135deg,#151009,#1e1208);border-color:#2a1f10">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
@@ -763,6 +775,12 @@
     <div style="height:4px;background:var(--surface2);border-radius:2px;margin-top:14px;overflow:hidden">
       <div id="countdownFill" style="height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 1s ease;width:0%"></div>
     </div>
+  </section>
+
+  <!-- NEXT ACTION -->
+  <section class="card fade-up" id="nextActionCard">
+    <div class="card-title">⚡ Prochaine action — Khalwa</div>
+    <div id="nextActionContent" style="font-size:14px;color:var(--cream);font-weight:600;line-height:1.6"></div>
   </section>
 
   <!-- STATS ROW -->
@@ -1889,8 +1907,48 @@ async function updateEncodeBar() {
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
+function renderNextAction() {
+  const el = document.getElementById('nextActionContent');
+  if (!el) return;
+
+  // Semaine en cours
+  const today = new Date();
+  const weekEl = document.getElementById('currentWeekLabel');
+  if (weekEl) {
+    const wn = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / 86400000 + new Date(today.getFullYear(), 0, 1).getDay() + 1) / 7);
+    weekEl.textContent = `Semaine ${wn} · ${today.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}`;
+  }
+
+  // Déterminer prochaine action selon état pipeline
+  const videos   = DB.videos || [];
+  const encoding = videos.find(v => v.status === 'encoding' || v.status === 'produced');
+  const unlisted = videos.find(v => v.status === 'unlisted');
+  const pubCount = videos.filter(v => v.status === 'public' || v.status === 'monetized').length;
+
+  let action = '', color = 'var(--gold)';
+
+  if (unlisted) {
+    action = `🔒 Vidéo "<strong>${unlisted.title.slice(0,40)}...</strong>" non répertoriée<br><span style="font-size:12px;color:var(--muted)">→ Vérifie audio · Active monétisation · Passe en Public</span>`;
+    color = 'var(--warning)';
+  } else if (encoding) {
+    action = `⚙️ Pipeline en cours — <strong>${encoding.title.slice(0,35)}...</strong><br><span style="font-size:12px;color:var(--muted)">→ Encode actif · Upload auto après · Programmé mardi 07:00</span>`;
+    color = '#a78bfa';
+  } else if (pubCount === 0) {
+    action = `🚀 Prête à lancer — produire la première vidéo<br><span style="font-size:12px;color:var(--muted)">→ Choisir niche · Pipeline FFmpeg · Upload</span>`;
+  } else if (pubCount < 3) {
+    action = `📈 ${pubCount}/3 vidéos publiques — continuer la cadence<br><span style="font-size:12px;color:var(--muted)">→ 1 vidéo/mardi · Régularité = signal fort algorithme YT</span>`;
+    color = 'var(--success)';
+  } else {
+    action = `✅ Cadence en place — ${pubCount} vidéos publiées<br><span style="font-size:12px;color:var(--muted)">→ Vérifier analytics J+7 · Préparer prochaine niche</span>`;
+    color = 'var(--success)';
+  }
+
+  el.innerHTML = `<span style="color:${color}">${action}</span>`;
+}
+
 function init() {
   initHeader();
+  renderNextAction();
   renderStats();
   renderVideos();
   seedEditorialCalFromVideos();
