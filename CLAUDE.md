@@ -4,8 +4,9 @@
 ## 📺 ÉTAT CHAÎNE — MIS À JOUR CHAQUE SESSION
 | Vidéo | ID YouTube | Statut | Date |
 |-------|-----------|--------|------|
-| Pink Noise for Babies 11h | `10KZSY5Y-MM` | Non répertoriée — traitement en cours | 2026-06-02 |
-| White Noise (silencieuse) | `PW4yXKyGFL4` | À SUPPRIMER | 2026-05-19 |
+| Pink Noise for Babies 11h | `10KZSY5Y-MM` | **PUBLIC** — publié 2026-06-02 07:00 | 2026-06-02 |
+| Ancient Campfire 11h | — | Encode en cours → upload auto → lundi 09/06 07:00 | — |
+| White Noise (silencieuse) | `PW4yXKyGFL4` | **À SUPPRIMER** | 2026-05-19 |
 
 **⚠️ RÈGLE MAJ DASHBOARD**: Mettre à jour ce tableau ET `dashboard/index.html` (statut vidéo) à chaque session ET toutes les 3 échanges si changement de statut YT.
 
