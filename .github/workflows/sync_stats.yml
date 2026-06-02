@@ -1,0 +1,38 @@
+name: Sync YouTube Stats
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # toutes les heures H24
+  workflow_dispatch:       # lancement manuel possible
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: cd scripts && npm install
+
+      - name: Write YouTube credentials
+        run: |
+          echo '${{ secrets.YT_SECRETS }}' > scripts/client_secrets.json
+          echo '${{ secrets.YT_TOKEN }}'   > scripts/.yt_token.json
+
+      - name: Sync YouTube stats
+        run: node scripts/sync_stats.js
+
+      - name: Commit yt_stats.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dashboard/yt_stats.json
+          git diff --staged --quiet || git commit -m "chore: sync YouTube stats $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push

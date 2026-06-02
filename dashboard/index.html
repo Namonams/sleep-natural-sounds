@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleep Natural Sounds — CRM Dashboard</title>
+<style>
+  :root {
+    --bg: #0D0A08;
+    --surface: #151009;
+    --surface2: #1e1610;
+    --border: #2a1f10;
+    --gold: #E8A050;
+    --gold-dim: #a0703a;
+    --cream: #F8F4EF;
+    --muted: #7a6a58;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+  }
+
+  .fade-up { animation: fadeUp 0.5s ease both; }
+  .fade-up:nth-child(1) { animation-delay: 0.05s; }
+  .fade-up:nth-child(2) { animation-delay: 0.10s; }
+  .fade-up:nth-child(3) { animation-delay: 0.15s; }
+  .fade-up:nth-child(4) { animation-delay: 0.20s; }
+  .fade-up:nth-child(5) { animation-delay: 0.25s; }
+  .fade-up:nth-child(6) { animation-delay: 0.30s; }
+
+  /* ── Header ── */
+  #header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13, 10, 8, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-logo .moon { font-size: 22px; }
+  .header-logo .brand { font-size: 15px; font-weight: 700; color: var(--cream); letter-spacing: -0.3px; }
+  .header-logo .label { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-date { font-size: 12px; color: var(--muted); }
+  .streak-badge {
+    background: linear-gradient(135deg, #ff6b35, #e8a050);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform var(--transition), opacity var(--transition);
+    white-space: nowrap;
+  }
+  .streak-badge:hover { transform: scale(1.05); opacity: 0.9; }
+
+  /* ── Main layout ── */
+  #main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color var(--transition);
+  }
+  .card:hover { border-color: var(--gold-dim); }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: border-color var(--transition), transform var(--transition), background var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(232,160,80,0.04));
+    pointer-events: none;
+  }
+  .stat-card:hover {
+    border-color: var(--gold-dim);
+    transform: translateY(-2px);
+    background: var(--surface2);
+  }
+  .stat-card .stat-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+  .stat-card .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--cream);
+    line-height: 1.1;
+    margin: 4px 0 2px;
+    transition: color var(--transition);
+  }
+  .stat-card.gold .stat-value { color: var(--gold); }
+  .stat-card .stat-target { font-size: 11px; color: var(--muted); }
+  .stat-card .stat-target span { color: var(--gold-dim); }
+
+  .stat-edit-input {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--cream);
+    background: var(--surface2);
+    border: 2px solid var(--gold);
+    border-radius: 6px;
+    padding: 2px 8px;
+    width: 100%;
+    outline: none;
+    margin: 4px 0 2px;
+  }
+  .stat-edit-input:focus { box-shadow: 0 0 0 3px rgba(232,160,80,0.2); }
+
+  /* ── Two-column layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* ── Progress bars ── */
+  .progress-item { margin-bottom: 18px; }
+  .progress-item:last-child { margin-bottom: 0; }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .progress-header .prog-label { color: var(--cream); font-weight: 600; }
+  .progress-header .prog-value { color: var(--muted); }
+  .progress-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+  .progress-fill.success { background: linear-gradient(90deg, #22c55e, var(--success)); }
+
+  .status-badge-mono {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 18px;
+    border: 1px solid currentColor;
+  }
+  .badge-locked  { color: var(--danger);  background: rgba(248,113,113,0.1); }
+  .badge-close   { color: var(--warning); background: rgba(251,191,36,0.1); }
+  .badge-unlocked{ color: var(--success); background: rgba(74,222,128,0.1); animation: pulse 2s infinite; }
+
+  /* ── Revenue calculator ── */
+  .revenue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mini-stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .mini-stat .ms-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .mini-stat .ms-value { font-size: 18px; font-weight: 700; color: var(--cream); }
+  .mini-stat.gold-mini .ms-value { color: var(--gold); }
+
+  .rpm-slider-wrap { margin-top: 16px; }
+  .rpm-slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .rpm-slider-label strong { color: var(--gold); font-size: 15px; }
+  .rpm-hint { font-size: 10px; color: var(--muted); margin-top: 4px; text-align: center; }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    outline: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--bg);
+    cursor: pointer;
+    transition: transform var(--transition);
+    box-shadow: 0 0 8px rgba(232,160,80,0.4);
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* ── Video Pipeline ── */
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity var(--transition), transform var(--transition);
+  }
+  .btn-add:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+  }
+  thead tr { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,31,16,0.5);
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background var(--transition); }
+  tbody tr:hover { background: rgba(30,22,16,0.6); }
+
+  .video-thumb {
+    width: 56px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .thumb-placeholder {
+    width: 56px;
+    height: 40px;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .video-title-cell { max-width: 220px; }
+  .video-title-cell .vt { font-weight: 600; color: var(--cream); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .video-title-cell .vid { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .niche-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    transition: opacity var(--transition), transform var(--transition);
+    user-select: none;
+  }
+  .status-pill:hover { opacity: 0.8; transform: scale(0.97); }
+  .s-draft      { background: rgba(122,106,88,0.2);  color: var(--muted);   border-color: var(--border); }
+  .s-produced   { background: rgba(251,191,36,0.15); color: var(--warning); border-color: rgba(251,191,36,0.3); }
+  .s-unlisted   { background: rgba(147,197,253,0.1); color: #93c5fd;        border-color: rgba(147,197,253,0.3); }
+  .s-public     { background: rgba(74,222,128,0.12); color: var(--success); border-color: rgba(74,222,128,0.3); }
+  .s-monetized  { background: rgba(232,160,80,0.15); color: var(--gold);    border-color: rgba(232,160,80,0.3); }
+
+  .action-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+    white-space: nowrap;
+  }
+  .action-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .action-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+  .actions-cell { display: flex; gap: 6px; align-items: center; }
+
+  /* ── Calendar ── */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .cal-day-header {
+    font-size: 9px;
+    color: var(--muted);
+    text-align: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+    user-select: none;
+    font-weight: 600;
+  }
+  .cal-day:hover { border-color: var(--gold-dim); color: var(--cream); transform: scale(1.05); }
+  .cal-day.done {
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    border-color: var(--gold);
+    color: var(--bg);
+    font-weight: 800;
+  }
+  .cal-day.today { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,160,80,0.3); }
+
+  .cal-streak { font-size: 12px; color: var(--muted); text-align: center; }
+  .cal-streak strong { color: var(--gold); }
+
+  /* ── Notes ── */
+  .notes-area {
+    width: 100%;
+    height: 240px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--transition);
+  }
+  .notes-area:focus { border-color: var(--gold-dim); }
+  .notes-save-hint { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: right; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.2s ease;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--cream);
+    margin-bottom: 22px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--cream);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color var(--transition);
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px rgba(232,160,80,0.15); }
+  .form-select option { background: var(--surface2); }
+
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+  .btn-cancel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+  }
+  .btn-cancel:hover { border-color: var(--gold-dim); color: var(--cream); }
+  .btn-save {
+    background: var(--gold);
+    border: none;
+    color: var(--bg);
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity var(--transition);
+  }
+  .btn-save:hover { opacity: 0.85; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #main { padding: 16px; gap: 16px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .header-logo .label { display: none; }
+    table { min-width: 600px; }
+  }
+
+  @media (max-width: 500px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .stat-card .stat-value { font-size: 22px; }
+    #header { padding: 0 14px; }
+    .header-date { display: none; }
+  }
+
+  /* ── Empty state ── */
+  .empty-row td { text-align: center; color: var(--muted); padding: 32px; font-style: italic; }
+
+  /* ── Team ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 1100px) { .team-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px)  { .team-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .agent-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color var(--transition), transform var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .agent-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--agent-color, var(--gold-dim)), transparent);
+  }
+  .agent-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+  .agent-card.khalwa { --agent-color: #E8A050; }
+  .agent-card.videaste { --agent-color: #a78bfa; }
+  .agent-card.contenu  { --agent-color: #34d399; }
+  .agent-card.visuel   { --agent-color: #f472b6; }
+  .agent-card.analytics{ --agent-color: #38bdf8; }
+
+  .agent-avatar { font-size: 28px; line-height: 1; }
+  .agent-name   { font-size: 13px; font-weight: 800; color: var(--cream); }
+  .agent-role   { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .agent-task   { font-size: 11px; color: var(--cream); opacity: 0.8; line-height: 1.4; border-top: 1px solid var(--border); padding-top: 8px; min-height: 32px; }
+
+  .agent-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .agent-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .st-active  { color: var(--success); background: rgba(74,222,128,0.12); animation: pulse 2s infinite; }
+  .st-working { color: var(--warning); background: rgba(251,191,36,0.12); animation: pulse 1.5s infinite; }
+  .st-idle    { color: var(--muted);   background: rgba(122,106,88,0.12); }
+
+  /* ── Encode progress ── */
+  .encode-bar-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .encode-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .encode-bar-label  { font-size: 12px; font-weight: 700; color: var(--cream); }
+  .encode-bar-pct    { font-size: 12px; color: var(--gold); font-weight: 800; }
+  .encode-track { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .encode-fill  {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #a78bfa, var(--gold));
+    transition: width 1s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .encode-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  .encode-meta { font-size: 10px; color: var(--muted); margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="header-logo">
+    <span class="moon">🌙</span>
+    <div>
+      <div class="brand">Sleep Natural Sounds</div>
+      <div class="label">CRM Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="header-date" id="headerDate"></span>
+    <span class="streak-badge" id="streakBadge" title="Cliquer pour recalculer">🔥 0 semaines</span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- STATS ROW -->
+  <section class="stats-row" id="statsRow" aria-label="Statistiques principales">
+    <div class="stat-card fade-up" id="statSubs" onclick="startEditStat('subscribers')" title="Cliquer pour modifier">
+      <span class="stat-icon">👥</span>
+      <div class="stat-label">Abonnés</div>
+      <div class="stat-value" id="valSubs">0</div>
+      <div class="stat-target">Objectif : <span>1 000</span></div>
+    </div>
+    <div class="stat-card fade-up" id="statHours" onclick="startEditStat('watchHours')" title="Cliquer pour modifier">
+      <span class="stat-icon">⏱️</span>
+      <div class="stat-label">Heures de visionnage</div>
+      <div class="stat-value" id="valHours">0</div>
+      <div class="stat-target">Objectif : <span>4 000h</span></div>
+    </div>
+    <div class="stat-card fade-up" id="statViews" onclick="startEditStat('totalViews')" title="Cliquer pour modifier">
+      <span class="stat-icon">👁️</span>
+      <div class="stat-label">Vues totales</div>
+      <div class="stat-value" id="valViews">0</div>
+      <div class="stat-target">&nbsp;</div>
+    </div>
+    <div class="stat-card fade-up gold" id="statRevenue">
+      <span class="stat-icon">💰</span>
+      <div class="stat-label">Revenus mensuels est.</div>
+      <div class="stat-value" id="valRevenue">€0</div>
+      <div class="stat-target">Basé sur vues × RPM</div>
+    </div>
+  </section>
+
+  <!-- MONETIZATION + REVENUE -->
+  <section class="two-col" aria-label="Monétisation et revenus">
+    <div class="card fade-up">
+      <div class="card-title">🏆 Progression monétisation YPP</div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="prog-label">👥 Abonnés</span>
+          <span class="prog-value" id="progSubsVal">0 / 1 000</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progSubsFill"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="prog-label">⏱️ Heures de visionnage</span>
+          <span class="prog-value" id="progHoursVal">0 / 4 000h</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progHoursFill"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="prog-label">📹 Vidéos publiques</span>
+          <span class="prog-value" id="progVidsVal">0 / 3</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill success" id="progVidsFill"></div></div>
+      </div>
+      <div id="monetBadge" class="status-badge-mono badge-locked">🔒 Non éligible</div>
+    </div>
+    <div class="card fade-up">
+      <div class="card-title">💶 Calculateur de revenus</div>
+      <div class="revenue-grid">
+        <div class="mini-stat">
+          <div class="ms-label">RPM</div>
+          <div class="ms-value" id="rpmVal">€8.00</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Vues mensuelles est.</div>
+          <div class="ms-value" id="monthlyViewsVal">—</div>
+        </div>
+        <div class="mini-stat gold-mini">
+          <div class="ms-label">Revenus min</div>
+          <div class="ms-value" id="revLowVal">—</div>
+        </div>
+        <div class="mini-stat gold-mini">
+          <div class="ms-label">Revenus max</div>
+          <div class="ms-value" id="revHighVal">—</div>
+        </div>
+      </div>
+      <div class="rpm-slider-wrap">
+        <div class="rpm-slider-label">
+          <span>RPM €3</span>
+          <strong id="rpmLabel">€8</strong>
+          <span>€20</span>
+        </div>
+        <input type="range" id="rpmSlider" min="3" max="20" step="0.5" value="8" oninput="updateRPM(this.value)">
+        <div class="rpm-hint">Créneau sleep/niche : RPM habituel €5–€15</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO PIPELINE -->
+  <section class="card fade-up" aria-label="Pipeline vidéo">
+    <div class="table-header">
+      <div class="card-title" style="margin-bottom:0">🎬 Pipeline vidéo</div>
+      <button class="btn-add" onclick="openModal()">＋ Ajouter une vidéo</button>
+    </div>
+    <div class="table-wrap">
+      <table id="videoTable">
+        <thead>
+          <tr>
+            <th>Miniature</th>
+            <th>Titre</th>
+            <th>Niche</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Vues</th>
+            <th>H. visionnage</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="videoTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TEAM KHALWA & CO -->
+  <section class="card fade-up" aria-label="Équipe Khalwa">
+    <div class="card-title">🤝 Équipe Khalwa &amp; co</div>
+
+    <!-- Encode progress (visible si job actif) -->
+    <div class="encode-bar-wrap" id="encodeWrap" style="display:none">
+      <div class="encode-bar-header">
+        <span class="encode-bar-label" id="encodeLabel">🎬 Re-encode en cours…</span>
+        <span class="encode-bar-pct" id="encodePct">0%</span>
+      </div>
+      <div class="encode-track"><div class="encode-fill" id="encodeFill" style="width:0%"></div></div>
+      <div class="encode-meta" id="encodeMeta">Démarrage…</div>
+    </div>
+
+    <div class="team-grid">
+      <div class="agent-card khalwa">
+        <div class="agent-avatar">🌙</div>
+        <div class="agent-name">Khalwa</div>
+        <div class="agent-role">Orchestrateur</div>
+        <div class="agent-status st-active">Actif</div>
+        <div class="agent-task" id="taskKhalwa">Supervise re-encode + upload Pink Noise 11h</div>
+      </div>
+      <div class="agent-card videaste">
+        <div class="agent-avatar">🎬</div>
+        <div class="agent-name">Vidéaste</div>
+        <div class="agent-role">Pipeline FFmpeg</div>
+        <div class="agent-status st-working" id="statusVideaste">Working</div>
+        <div class="agent-task" id="taskVideaste">Re-encode 11h → CRF 28 / 24fps / ~2 GB</div>
+      </div>
+      <div class="agent-card contenu">
+        <div class="agent-avatar">📝</div>
+        <div class="agent-name">Contenu</div>
+        <div class="agent-role">SEO &amp; Copywriting</div>
+        <div class="agent-status st-active">Prêt</div>
+        <div class="agent-task" id="taskContenu">Métadonnées Pink Noise prêtes · Campfire à rédiger</div>
+      </div>
+      <div class="agent-card visuel">
+        <div class="agent-avatar">🎨</div>
+        <div class="agent-name">Visuel</div>
+        <div class="agent-role">Canva MCP</div>
+        <div class="agent-status st-active">Prêt</div>
+        <div class="agent-task" id="taskVisuel">Thumbnail Pink Noise ✅ · Campfire DAHJo1ABqC4 prête</div>
+      </div>
+      <div class="agent-card analytics">
+        <div class="agent-avatar">📊</div>
+        <div class="agent-name">Analytics</div>
+        <div class="agent-role">KPIs &amp; Veille</div>
+        <div class="agent-status st-idle">En attente</div>
+        <div class="agent-task" id="taskAnalytics">Actif J+7 après premier upload public</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDAR + NOTES -->
+  <section class="two-col" aria-label="Calendrier et notes">
+    <div class="card fade-up">
+      <div class="card-title">📅 Calendrier 28 jours — activité</div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-streak" id="calStreak">Série actuelle : <strong>0 semaine(s)</strong></div>
+    </div>
+    <div class="card fade-up">
+      <div class="card-title">📝 Notes &amp; actions</div>
+      <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici…" oninput="saveNotes()"></textarea>
+      <div class="notes-save-hint" id="notesHint">Sauvegarde auto activée</div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ADD VIDEO MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-title" id="modalTitle">➕ Ajouter une vidéo</div>
+    <div class="form-group">
+      <label class="form-label" for="mTitle">Titre</label>
+      <input class="form-input" id="mTitle" type="text" placeholder="Titre de la vidéo…">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="mNiche">Niche</label>
+      <select class="form-select" id="mNiche">
+        <option value="baby-sleep">👶 Baby Sleep</option>
+        <option value="campfire">🔥 Campfire</option>
+        <option value="rain">🌧️ Rain</option>
+        <option value="forest">🌲 Forest</option>
+        <option value="ocean">🌊 Ocean</option>
+        <option value="winter">❄️ Winter</option>
+        <option value="other">🎵 Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="mStatus">Statut</label>
+      <select class="form-select" id="mStatus">
+        <option value="draft">Draft</option>
+        <option value="produced">Produit</option>
+        <option value="unlisted">Non répertorié</option>
+        <option value="public">Public ✓</option>
+        <option value="monetized">💰 Monétisé</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="mYtId">YouTube Video ID (optionnel)</label>
+      <input class="form-input" id="mYtId" type="text" placeholder="ex: dQw4w9WgXcQ">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="mDate">Date de publication</label>
+      <input class="form-input" id="mDate" type="date">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" onclick="saveVideo()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA LAYER
+// ─────────────────────────────────────────────
+const SEED = {
+  stats: { subscribers: 0, watchHours: 0, totalViews: 0 },
+  videos: [
+    {
+      id: 1,
+      title: "(No Ads) 🌙 Pink Noise for Babies | Black Screen | 11 Hours Deep Sleep",
+      niche: "baby-sleep",
+      status: "unlisted",
+      uploadDate: "2026-06-02",
+      youtubeId: "10KZSY5Y-MM",
+      views: 0,
+      watchHours: 0
+    },
+    {
+      id: 2,
+      title: "Ancient Campfire Sounds | 10 Hours Deep Sleep",
+      niche: "campfire",
+      status: "produced",
+      uploadDate: null,
+      youtubeId: null,
+      views: 0,
+      watchHours: 0
+    }
+  ],
+  calendar: {},
+  notes: "📋 Actions cette semaine:\n• Uploader Ancient Campfire 10h\n• Produire vidéo 3 (Rain Forest)\n• Répondre aux commentaires vidéo 1\n• Partager dans r/beyondthebump"
+};
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('snsCRM');
+    if (!raw) { saveData(SEED); return JSON.parse(JSON.stringify(SEED)); }
+    return JSON.parse(raw);
+  } catch(e) { return JSON.parse(JSON.stringify(SEED)); }
+}
+
+function saveData(data) {
+  try { localStorage.setItem('snsCRM', JSON.stringify(data)); } catch(e) {}
+}
+
+let DB = loadData();
+
+// ─────────────────────────────────────────────
+// NICHE CONFIG
+// ─────────────────────────────────────────────
+const NICHES = {
+  'baby-sleep': '👶 Baby Sleep',
+  'campfire':   '🔥 Campfire',
+  'rain':       '🌧️ Rain',
+  'forest':     '🌲 Forest',
+  'ocean':      '🌊 Ocean',
+  'winter':     '❄️ Winter',
+  'other':      '🎵 Other'
+};
+
+const STATUS_ORDER = ['draft','produced','unlisted','public','monetized'];
+const STATUS_META = {
+  'draft':     { label: 'Draft',           cls: 's-draft',    icon: '✏️' },
+  'produced':  { label: 'Produit',         cls: 's-produced', icon: '🎬' },
+  'unlisted':  { label: 'Non répertorié',  cls: 's-unlisted', icon: '🔗' },
+  'public':    { label: 'Public ✓',        cls: 's-public',   icon: '✅' },
+  'monetized': { label: '💰 Monétisé',    cls: 's-monetized',icon: '' }
+};
+
+// ─────────────────────────────────────────────
+// HEADER
+// ─────────────────────────────────────────────
+function initHeader() {
+  const now = new Date();
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  document.getElementById('headerDate').textContent = now.toLocaleDateString('fr-FR', opts);
+  updateStreakBadge();
+}
+
+function updateStreakBadge() {
+  const weeks = calcStreakWeeks();
+  document.getElementById('streakBadge').textContent = `🔥 ${weeks} semaine${weeks !== 1 ? 's' : ''}`;
+}
+
+function calcStreakWeeks() {
+  const cal = DB.calendar || {};
+  const keys = Object.keys(cal).filter(k => cal[k]).sort().reverse();
+  if (!keys.length) return 0;
+  const today = new Date();
+  let streak = 0;
+  let checkDate = new Date(today);
+  checkDate.setHours(0,0,0,0);
+  while (true) {
+    const key = dateKey(checkDate);
+    if (cal[key]) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return Math.floor(streak / 7);
+}
+
+function dateKey(d) {
+  return d.toISOString().slice(0,10);
+}
+
+// ─────────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────────
+function renderStats() {
+  const s = DB.stats;
+  document.getElementById('valSubs').textContent   = s.subscribers.toLocaleString('fr-FR');
+  document.getElementById('valHours').textContent  = s.watchHours.toLocaleString('fr-FR') + 'h';
+  document.getElementById('valViews').textContent  = s.totalViews.toLocaleString('fr-FR');
+
+  const rpm = parseFloat(document.getElementById('rpmSlider').value) || 8;
+  const monthly = Math.round(s.totalViews / 12);
+  const rev = Math.round((monthly / 1000) * rpm);
+  document.getElementById('valRevenue').textContent = '€' + rev.toLocaleString('fr-FR');
+
+  renderProgress();
+  renderRevenueCalc();
+}
+
+let editingStat = null;
+
+function startEditStat(key) {
+  if (editingStat) finishEditStat();
+  editingStat = key;
+  const idMap = { subscribers:'valSubs', watchHours:'valHours', totalViews:'valViews' };
+  const el = document.getElementById(idMap[key]);
+  const current = DB.stats[key];
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.className = 'stat-edit-input';
+  inp.value = current;
+  inp.min = 0;
+  inp.addEventListener('blur', finishEditStat);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') finishEditStat();
+    if (e.key === 'Escape') { editingStat = null; renderStats(); }
+  });
+  el.replaceWith(inp);
+  inp.focus();
+  inp.select();
+}
+
+function finishEditStat() {
+  if (!editingStat) return;
+  const key = editingStat;
+  editingStat = null;
+  const inp = document.querySelector('.stat-edit-input');
+  if (!inp) return;
+  const val = Math.max(0, parseInt(inp.value) || 0);
+  DB.stats[key] = val;
+  saveData(DB);
+  renderStats();
+}
+
+// ─────────────────────────────────────────────
+// PROGRESS
+// ─────────────────────────────────────────────
+function renderProgress() {
+  const s = DB.stats;
+  const pubVids = (DB.videos || []).filter(v => v.status === 'public' || v.status === 'monetized').length;
+
+  const subsPct   = Math.min(100, (s.subscribers / 1000) * 100);
+  const hoursPct  = Math.min(100, (s.watchHours / 4000) * 100);
+  const vidsPct   = Math.min(100, (pubVids / 3) * 100);
+
+  document.getElementById('progSubsFill').style.width  = subsPct + '%';
+  document.getElementById('progHoursFill').style.width = hoursPct + '%';
+  document.getElementById('progVidsFill').style.width  = vidsPct + '%';
+
+  document.getElementById('progSubsVal').textContent  = s.subscribers.toLocaleString('fr-FR') + ' / 1 000';
+  document.getElementById('progHoursVal').textContent = s.watchHours.toLocaleString('fr-FR') + ' / 4 000h';
+  document.getElementById('progVidsVal').textContent  = pubVids + ' / 3';
+
+  const badge = document.getElementById('monetBadge');
+  const allMet = s.subscribers >= 1000 && s.watchHours >= 4000 && pubVids >= 3;
+  const close  = s.subscribers >= 800  || s.watchHours >= 3000  || pubVids >= 2;
+
+  badge.className = 'status-badge-mono';
+  if (allMet) {
+    badge.className += ' badge-unlocked';
+    badge.textContent = '✅ Éligible YPP !';
+  } else if (close) {
+    badge.className += ' badge-close';
+    badge.textContent = '⚡ Presque éligible';
+  } else {
+    badge.className += ' badge-locked';
+    badge.textContent = '🔒 Non éligible';
+  }
+}
+
+// ─────────────────────────────────────────────
+// REVENUE CALCULATOR
+// ─────────────────────────────────────────────
+function updateRPM(val) {
+  document.getElementById('rpmLabel').textContent = '€' + parseFloat(val).toFixed(0);
+  renderRevenueCalc();
+  renderStats();
+}
+
+function renderRevenueCalc() {
+  const rpm = parseFloat(document.getElementById('rpmSlider').value) || 8;
+  const totalViews = DB.stats.totalViews || 0;
+  const monthly = Math.round(totalViews / 12);
+
+  document.getElementById('rpmVal').textContent = '€' + rpm.toFixed(2);
+  document.getElementById('monthlyViewsVal').textContent = monthly > 0 ? monthly.toLocaleString('fr-FR') : '—';
+
+  if (monthly === 0) {
+    document.getElementById('revLowVal').textContent  = '—';
+    document.getElementById('revHighVal').textContent = '—';
+    return;
+  }
+  const low  = ((monthly / 1000) * 5).toFixed(2);
+  const high = ((monthly / 1000) * 15).toFixed(2);
+  document.getElementById('revLowVal').textContent  = '€' + parseFloat(low).toLocaleString('fr-FR', {minimumFractionDigits:2});
+  document.getElementById('revHighVal').textContent = '€' + parseFloat(high).toLocaleString('fr-FR', {minimumFractionDigits:2});
+}
+
+// ─────────────────────────────────────────────
+// VIDEO TABLE
+// ─────────────────────────────────────────────
+function renderVideos() {
+  const tbody = document.getElementById('videoTbody');
+  const videos = DB.videos || [];
+
+  if (!videos.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Aucune vidéo — cliquez sur « Ajouter une vidéo »</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = videos.map(v => {
+    const sm = STATUS_META[v.status] || STATUS_META['draft'];
+    const nLabel = NICHES[v.niche] || v.niche || '—';
+    const dateStr = v.uploadDate ? new Date(v.uploadDate + 'T00:00:00').toLocaleDateString('fr-FR') : '—';
+
+    const thumbHtml = v.youtubeId
+      ? `<img class="video-thumb" src="https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg" alt="Miniature" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="thumb-placeholder" style="display:none">🎬</div>`
+      : `<div class="thumb-placeholder">🎬</div>`;
+
+    const ytLink = v.youtubeId
+      ? `<a href="https://youtube.com/watch?v=${v.youtubeId}" target="_blank" rel="noopener" style="color:var(--muted);font-size:10px;text-decoration:none;">${v.youtubeId}</a>`
+      : '';
+
+    return `<tr data-id="${v.id}">
+      <td>${thumbHtml}</td>
+      <td class="video-title-cell">
+        <div class="vt">${escHtml(v.title)}</div>
+        ${ytLink ? `<div class="vid">${ytLink}</div>` : ''}
+      </td>
+      <td><span class="niche-pill">${nLabel}</span></td>
+      <td>
+        <span class="status-pill ${sm.cls}" onclick="cycleStatus(${v.id})" title="Cliquer pour changer">
+          ${sm.icon ? sm.icon + ' ' : ''}${sm.label}
+        </span>
+      </td>
+      <td style="color:var(--muted);white-space:nowrap">${dateStr}</td>
+      <td style="font-weight:600">${v.views.toLocaleString('fr-FR')}</td>
+      <td style="font-weight:600">${v.watchHours.toLocaleString('fr-FR')}h</td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn" onclick="editVideoStats(${v.id})" title="Modifier vues & heures">✏️ Éditer</button>
+          <button class="action-btn del" onclick="deleteVideo(${v.id})" title="Supprimer">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function cycleStatus(id) {
+  const v = DB.videos.find(x => x.id === id);
+  if (!v) return;
+  const idx = STATUS_ORDER.indexOf(v.status);
+  v.status = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
+  saveData(DB);
+  renderVideos();
+  renderProgress();
+}
+
+function editVideoStats(id) {
+  const v = DB.videos.find(x => x.id === id);
+  if (!v) return;
+  const viewsStr = prompt(`Vues pour "${v.title.substring(0,40)}…"\nVues actuelles : ${v.views}`, v.views);
+  if (viewsStr === null) return;
+  const views = Math.max(0, parseInt(viewsStr) || 0);
+  const hoursStr = prompt(`Heures de visionnage pour cette vidéo.\nActuel : ${v.watchHours}`, v.watchHours);
+  if (hoursStr === null) return;
+  const watchHours = Math.max(0, parseInt(hoursStr) || 0);
+  v.views = views;
+  v.watchHours = watchHours;
+
+  // Recalculate totals from all videos
+  DB.stats.totalViews = DB.videos.reduce((a, x) => a + (x.views || 0), 0);
+  DB.stats.watchHours = DB.videos.reduce((a, x) => a + (x.watchHours || 0), 0);
+  saveData(DB);
+  renderVideos();
+  renderStats();
+}
+
+function deleteVideo(id) {
+  const v = DB.videos.find(x => x.id === id);
+  if (!v) return;
+  if (!confirm(`Supprimer "${v.title.substring(0,50)}…" ?\nCette action est irréversible.`)) return;
+  DB.videos = DB.videos.filter(x => x.id !== id);
+  DB.stats.totalViews = DB.videos.reduce((a, x) => a + (x.views || 0), 0);
+  DB.stats.watchHours = DB.videos.reduce((a, x) => a + (x.watchHours || 0), 0);
+  saveData(DB);
+  renderVideos();
+  renderStats();
+}
+
+// ─────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────
+function openModal() {
+  document.getElementById('mTitle').value = '';
+  document.getElementById('mNiche').value = 'baby-sleep';
+  document.getElementById('mStatus').value = 'draft';
+  document.getElementById('mYtId').value = '';
+  document.getElementById('mDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('mTitle').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveVideo() {
+  const title = document.getElementById('mTitle').value.trim();
+  if (!title) { alert('Le titre est requis.'); return; }
+  const ytRaw = document.getElementById('mYtId').value.trim();
+  const ytId = ytRaw || null;
+  const dateVal = document.getElementById('mDate').value || null;
+
+  const newId = DB.videos.length ? Math.max(...DB.videos.map(v => v.id)) + 1 : 1;
+  DB.videos.push({
+    id: newId,
+    title,
+    niche:       document.getElementById('mNiche').value,
+    status:      document.getElementById('mStatus').value,
+    uploadDate:  dateVal,
+    youtubeId:   ytId,
+    views:       0,
+    watchHours:  0
+  });
+  saveData(DB);
+  closeModal();
+  renderVideos();
+  renderProgress();
+}
+
+// ─────────────────────────────────────────────
+// CALENDAR
+// ─────────────────────────────────────────────
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Build 28 days starting from 28 days ago
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 27);
+
+  const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+  let html = dayNames.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+
+  // Figure out starting offset (Monday = 0)
+  const firstDow = (startDate.getDay() + 6) % 7; // 0=Mon
+  // We'll just render 28 boxes; start from the monday of the week containing startDate
+  const gridStart = new Date(startDate);
+  gridStart.setDate(gridStart.getDate() - firstDow);
+
+  for (let i = 0; i < 28 + firstDow; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const key = dateKey(d);
+    const isToday = dateKey(d) === dateKey(today);
+    const isDone  = !!(DB.calendar && DB.calendar[key]);
+    const isBefore= d < startDate;
+    const isAfter = d > today;
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (isDone)  cls += ' done';
+
+    const dayNum = d.getDate();
+    html += `<div class="${cls}" data-key="${key}" onclick="toggleCalDay('${key}')" title="${key}">${dayNum}</div>`;
+  }
+
+  grid.innerHTML = html;
+  updateCalStreak();
+}
+
+function toggleCalDay(key) {
+  if (!DB.calendar) DB.calendar = {};
+  DB.calendar[key] = !DB.calendar[key];
+  if (!DB.calendar[key]) delete DB.calendar[key];
+  saveData(DB);
+  renderCalendar();
+  updateStreakBadge();
+}
+
+function updateCalStreak() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let streak = 0;
+  let d = new Date(today);
+  while (DB.calendar && DB.calendar[dateKey(d)]) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  const weeks = Math.floor(streak / 7);
+  document.getElementById('calStreak').innerHTML =
+    `Série actuelle : <strong>${streak} jour${streak !== 1 ? 's' : ''}</strong> (${weeks} sem.)`;
+}
+
+// ─────────────────────────────────────────────
+// NOTES
+// ─────────────────────────────────────────────
+function initNotes() {
+  const ta = document.getElementById('notesArea');
+  ta.value = DB.notes || '';
+}
+
+let notesTimer = null;
+function saveNotes() {
+  clearTimeout(notesTimer);
+  notesTimer = setTimeout(() => {
+    DB.notes = document.getElementById('notesArea').value;
+    saveData(DB);
+    const hint = document.getElementById('notesHint');
+    hint.textContent = 'Sauvegardé ✓';
+    setTimeout(() => { hint.textContent = 'Sauvegarde auto activée'; }, 1500);
+  }, 600);
+}
+
+// ─────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); if (editingStat) { editingStat = null; renderStats(); } }
+});
+
+// ─────────────────────────────────────────────
+// YOUTUBE STATS AUTO-SYNC (lit yt_stats.json)
+// ─────────────────────────────────────────────
+async function syncYTStats() {
+  let data;
+  try {
+    const r = await fetch('yt_stats.json?t=' + Date.now());
+    data = await r.json();
+  } catch(e) { return; }
+
+  const ch = data.channel;
+  if (!ch) return;
+
+  // Mise à jour stats principales
+  if (!editingStat) {
+    DB.stats.subscribers = ch.subscribers;
+    DB.stats.watchHours  = ch.watchTimeHours;
+    DB.stats.totalViews  = ch.totalViews;
+    saveData(DB);
+    renderStats();
+    renderProgress();
+  }
+
+  // Mise à jour vidéos depuis YT
+  if (data.videos && data.videos.length > 0) {
+    for (const ytV of data.videos) {
+      const local = DB.videos.find(v => v.youtubeId === ytV.id);
+      if (local) {
+        local.views      = ytV.views;
+        local.watchHours = Math.round(ytV.views * 0.5); // estimé si analytics limités
+        if (ytV.status === 'public' && local.status !== 'monetized') local.status = 'public';
+      }
+    }
+    saveData(DB);
+    renderVideos();
+  }
+
+  // Timestamp dernière sync
+  const el = document.getElementById('lastSync');
+  if (el) el.textContent = 'Sync YT: ' + new Date(data.updatedAt).toLocaleTimeString('fr-FR');
+
+  // Agent analytics
+  const taskA = document.getElementById('taskAnalytics');
+  const stA   = document.getElementById('statusAnalytics') || document.querySelector('.agent-card.analytics .agent-status');
+  if (taskA) taskA.textContent = `${ch.subscribers} subs · ${ch.watchTimeHours}h watch · sync auto`;
+  if (stA)  { stA.className = 'agent-status st-active'; stA.textContent = 'Live'; }
+}
+
+// ─────────────────────────────────────────────
+// TEAM — ENCODE PROGRESS (lit progress.json)
+// ─────────────────────────────────────────────
+async function updateEncodeBar() {
+  const wrap           = document.getElementById('encodeWrap');
+  const fill           = document.getElementById('encodeFill');
+  const pctEl          = document.getElementById('encodePct');
+  const meta           = document.getElementById('encodeMeta');
+  const label          = document.getElementById('encodeLabel');
+  const statusVideaste = document.getElementById('statusVideaste');
+  const taskVideaste   = document.getElementById('taskVideaste');
+
+  let data;
+  try {
+    const r = await fetch('progress.json?t=' + Date.now());
+    data = await r.json();
+  } catch(e) { return; }
+
+  const enc = data.encode;
+  if (!enc || !enc.active) {
+    wrap.style.display = 'none';
+    statusVideaste.className = 'agent-status st-active';
+    statusVideaste.textContent = 'Prêt';
+    taskVideaste.textContent = 'Re-encode terminé ✅ · Upload en file';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  label.textContent  = '🎬 ' + enc.label;
+  fill.style.width   = enc.pct + '%';
+  pctEl.textContent  = enc.pct + '%';
+  meta.textContent   = enc.doneGB + ' GB / ~' + enc.targetGB + ' GB · ETA ~' + enc.etaMin + ' min · FFmpeg actif';
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  initHeader();
+  renderStats();
+  renderVideos();
+  renderCalendar();
+  initNotes();
+  updateEncodeBar();
+  setInterval(updateEncodeBar, 30000);
+  syncYTStats();
+  setInterval(syncYTStats, 5 * 60 * 1000); // refresh toutes les 5 min
+}
+
+init();
+</script>
+</body>
+</html>

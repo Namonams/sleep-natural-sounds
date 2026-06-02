@@ -1,0 +1,28 @@
+# Vidéos (trop lourdes)
+output/*.mp4
+output/*.mkv
+assets/audio/*.mp4
+assets/audio/*.mp3
+assets/video/*.mp4
+
+# Secrets YouTube (NE JAMAIS COMMITTER)
+scripts/.yt_token.json
+scripts/client_secrets.json
+
+# Logs
+scripts/*.log
+*.log
+watcher*.log
+campfire*.log
+upload*.log
+
+# Temp
+C:/tmp_sleep/
+*.tmp
+
+# Node
+scripts/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
