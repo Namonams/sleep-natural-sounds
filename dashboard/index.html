@@ -768,7 +768,7 @@
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Prochaine publication</div>
         <div id="nextVideoTitle" style="font-size:16px;font-weight:800;color:var(--cream)">Ancient Campfire · 11H</div>
-        <div id="nextVideoDate" style="font-size:12px;color:var(--gold);margin-top:3px">Lundi 9 juin 2026 · 07:00</div>
+        <div id="nextVideoDate" style="font-size:12px;color:var(--gold);margin-top:3px">Mardi 9 juin 2026 · 07:00</div>
       </div>
       <div id="countdown" style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;font-variant-numeric:tabular-nums">--:--:--:--</div>
     </div>
@@ -1107,7 +1107,7 @@ let DB = loadData();
 if (!DB.editorialCal || !DB.editorialCal['2026-06-02']) {
   DB.editorialCal = Object.assign(DB.editorialCal || {}, {
     '2026-06-02': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public',   ytId: '10KZSY5Y-MM', pubTime: '07:00' },
-    '2026-06-10': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'encoding', ytId: null,           pubTime: '07:00' }
+    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'uploaded', ytId: 'i3OvPXCjI4A',           pubTime: '07:00' }
   });
   saveData(DB);
 }
@@ -1752,7 +1752,7 @@ function seedEditorialCalFromVideos() {
 
   // Planifications fixes (à maintenir manuellement ici)
   const fixedPlans = {
-    '2026-06-09': { niche: 'campfire', title: 'Ancient Campfire 11H', status: 'encoding' }
+    '2026-06-09': { niche: 'campfire', title: 'Ancient Campfire 11H', status: 'uploaded' }
   };
   for (const [k, v] of Object.entries(fixedPlans)) {
     if (!DB.editorialCal[k]) DB.editorialCal[k] = v;
@@ -1966,3 +1966,4 @@ init();
 </script>
 </body>
 </html>
+
