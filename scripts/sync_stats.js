@@ -16,6 +16,7 @@ const LOG_FILE     = path.join(__dirname, 'sync_stats.log');
 
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube.upload',
+  'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/youtube.readonly',
   'https://www.googleapis.com/auth/yt-analytics.readonly'
 ];
@@ -168,3 +169,4 @@ async function syncStats(auth) {
     process.exit(1);
   }
 })();
+
