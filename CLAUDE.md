@@ -5,7 +5,7 @@
 | Vidéo | ID YouTube | Statut | Date |
 |-------|-----------|--------|------|
 | Pink Noise for Babies 11h | `10KZSY5Y-MM` | **PUBLIC** — publié 2026-06-02 07:00 | 2026-06-02 |
-| Ancient Campfire 11h | — | Encode en cours → upload auto → lundi 09/06 07:00 | — |
+| Ancient Campfire 11h | `i3OvPXCjI4A` | Uploadé 2026-06-08 · Schedulé **mardi 09/06 07:00** | 2026-06-08 |
 | White Noise (silencieuse) | `PW4yXKyGFL4` | **À SUPPRIMER** | 2026-05-19 |
 
 **⚠️ RÈGLE MAJ DASHBOARD**: Mettre à jour ce tableau ET `dashboard/index.html` (statut vidéo) à chaque session ET toutes les 3 échanges si changement de statut YT.
@@ -16,7 +16,7 @@
 
 **Canal**: Sleep Natural Sounds (`sleepnaturalsounds@gmail.com`)
 **Concept**: Chaîne YouTube de sons ambiants 10-11h — zéro pub, qualité maximale, croissance organique.
-**Cadence**: 1 vidéo/semaine, publication lundi ou mardi (peak watch time sleep).
+**Cadence**: 1 vidéo/semaine, publication mardi 07:00 Paris (règle fixe — jamais lundi).
 **Durée standard**: **11h exactement** pour TOUTES les vidéos — aucune exception.
 **Horizon monétisation**: 6-12 mois (1000 abonnés + 4000h watch time).
 **Philosophie**: **Ihsan** — chaque vidéo produite avec excellence et éthique. Pas de raccourci.
@@ -437,3 +437,27 @@ Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
 - `output/*_FINAL.mp4` — supprimer LOCAL après upload YouTube confirmé
 - Sources Pixabay brutes dans `assets/audio/` — garder seulement si réutilisées
 - Fichiers 0 bytes ou corrompus — supprimer immédiatement
+
+
+---
+
+## 📈 XP LOG — Second Cerveau Vivant
+> Jamais effacé. Chaque session = données cumulées. Lire avant d'agir.
+
+| Date | Action | Résultat | Leçon |
+|------|--------|----------|-------|
+| 2026-06-02 | Publication V1 Pink Noise | ✅ 1 sub, 11 vues, 2 likes | Première vidéo publique — audience existe |
+| 2026-06-08 | Fix GitHub Actions sync YT | ✅ BOM + token + write perms | 3 bugs en cascade : secret encodage BOM, token 7j app Testing, workflow sans `contents: write` |
+| 2026-06-08 | OAuth re-auth | ✅ Token valide, invalid_grant résolu | App Google mode Testing = refresh tokens expirent 7j → passer en Production |
+| 2026-06-08 | Upload V2 Ancient Campfire | ✅ Video ID `i3OvPXCjI4A`, 3.1 min @ 19 MB/s | API upload fonctionne, thumbnail auto-uploadée |
+| 2026-06-08 | Rapport mensuel auto | ✅ Workflow + GitHub issue notification | 1er du mois 07:00 UTC → JSON cumulatif + issue créée |
+| 2026-06-08 | CORRECTION date publication | ⚠️ Lundi → Mardi 09/06 | RÈGLE : chaque MARDI 07:00 Paris. Corriger dans TOUS les fichiers. |
+| 2026-06-08 | Dashboard calendrier fix | ✅ "Mardi 9 juin", date 09/06, status uploaded | Seed data figée = data incohérente. Règle : seed data = toujours synchronisée avec réalité |
+
+### Règles déduites de l'XP
+- **Token Google** : re-OAuth tous les 7 jours si app en mode Testing → passer app en **Production** (Google Cloud Console → OAuth consent screen)
+- **Secrets GitHub** : toujours setter via `cmd /c "gh secret set X < file"` sur Windows (pas pipe PowerShell → BOM)
+- **Publication** : MARDI 07:00 Paris, jamais lundi
+- **Dashboard** : après chaque upload/publication → mettre à jour `editorialCal` + status vidéo dans index.html
+- **Méditation** : à intégrer dans la rotation — V3 ou V4 = thème méditation/zen
+
