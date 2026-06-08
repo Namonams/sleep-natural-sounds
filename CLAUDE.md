@@ -451,6 +451,7 @@ Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
 | 2026-06-08 | OAuth re-auth | ✅ Token valide, invalid_grant résolu | App Google mode Testing = refresh tokens expirent 7j → passer en Production |
 | 2026-06-08 | Upload V2 Ancient Campfire | ✅ Video ID `i3OvPXCjI4A`, 3.1 min @ 19 MB/s | API upload fonctionne, thumbnail auto-uploadée |
 | 2026-06-08 | Rapport mensuel auto | ✅ Workflow + GitHub issue notification | 1er du mois 07:00 UTC → JSON cumulatif + issue créée |
+| 2026-06-08 | Campfire encode corrompu | ⚠️ moov atom manquant → YouTube reject | Disk full (2GB libre) = encode interrompu avant écriture moov. **RÈGLE : vérifier >10GB libre avant tout pipeline 11h** |
 | 2026-06-08 | CORRECTION date publication | ⚠️ Lundi → Mardi 09/06 | RÈGLE : chaque MARDI 07:00 Paris. Corriger dans TOUS les fichiers. |
 | 2026-06-08 | Dashboard calendrier fix | ✅ "Mardi 9 juin", date 09/06, status uploaded | Seed data figée = data incohérente. Règle : seed data = toujours synchronisée avec réalité |
 
@@ -461,3 +462,9 @@ Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
 - **Dashboard** : après chaque upload/publication → mettre à jour `editorialCal` + status vidéo dans index.html
 - **Méditation** : à intégrer dans la rotation — V3 ou V4 = thème méditation/zen
 
+
+
+### Règle critique ajoutée 2026-06-08
+- **AVANT tout pipeline 11h** : `(Get-PSDrive C).Free/1GB` → doit être **>10 GB** (output ~3GB + tmp ~1GB + marge)
+- **Movflags** : utiliser `+frag_keyframe+empty_moov` pour les encodes longs → survit aux interruptions
+- **Vidéo YouTube "Traitement abandonné"** = fichier MP4 sans moov atom = encode interrompu → supprimer et re-encoder
