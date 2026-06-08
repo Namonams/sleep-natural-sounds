@@ -113,15 +113,22 @@ ffprobe source_audio.mp3  # → durée, volume moyen
 (Get-PSDrive C).Free/1GB  # → disk libre > 20 GB ?
 ```
 Règles de décision:
-- Bitrate vidéo > 1.5 Mbps OU fps > 30 → encode `-crf 28 -preset fast -r 24`
-- Bitrate vidéo ≤ 1.5 Mbps ET fps ≤ 30 → `-c:v copy` (rapide)
+- Bitrate vidéo > 1.5 Mbps OU fps > 30 → encode `-crf 32 -preset medium -r 24`
+- Bitrate vidéo ≤ 1.5 Mbps ET fps ≤ 30 → `-c:v copy` (rapide, ex: Remotion rain 500 kbps)
 - Volume audio < -30 dB → loudnorm sur source courte d'abord, puis loop copy
+- Audio toujours : AAC 128k (pas MP3) — natif MP4, plus petit, qualité identique pour sleep
 - Taille estimée output = `(bitrate_cible × durée_sec) / 8` → afficher AVANT de lancer
 
 ### Étape 1 — Pipeline FFmpeg (~10-15 min)
 ```
 full_pipeline.ps1 -VideoFile ... -AudioFile ... -OutputName ... -Hours 11
-→ Output YT-ready: ~2-4 GB, 1280x720, 24fps, audio -14 LUFS
+→ Output YT-ready: ~1-1.5 GB, 1280x720, 24fps, audio -14 LUFS
+
+Paramètres optimisés (2026-06-08):
+  Vidéo : CRF 32, preset medium, 24fps  → contenu sombre/statique ≤ 200 kbps
+  Audio : AAC 128k (loudnorm -14 LUFS)  → 0.63 GB pour 11h (vs 1 GB MP3 192k)
+  Flags : +frag_keyframe+empty_moov      → protection si disk plein en cours d'encode
+  Total estimé 11h : ~0.9 - 1.4 GB (vs ~2-4 GB anciens réglages)
 ```
 
 ### Étape 2 — Team en parallèle pendant pipeline (~5 min)
@@ -460,6 +467,7 @@ Disk C:    237.9 GB total — état 2026-06-08: 33 GB libres (ok ✅)
 | 2026-06-08 | Disk C: 4.8 GB → 33 GB | ✅ +28 GB: caches Chrome+Edge+Temp | Caches navigateurs = jusqu'à 30 GB sur Windows. Nettoyage = 1ère action si disk serré |
 | 2026-06-08 | Remotion Rain composition créée | ✅ Test 3s OK (152 kB) — render 30s en cours | Remotion dans NamoBraso-video (v4.0.448) réutilisable. Render: `.\node_modules\.bin\remotion.cmd render` |
 | 2026-06-08 | pipeline auto post_encode_campfire.ps1 | 🔄 En attente fin FFmpeg | Capture VIDEO_ID depuis output upload → env YT_VIDEO_ID → schedule_publish.js |
+| 2026-06-08 | Optimisation pipeline: CRF 28→32, MP3 192k→AAC 128k | ✅ ~1 GB au lieu de ~2-4 GB pour 11h | CRF 32 invisible sur contenu sombre. AAC 128k = MP3 192k qualité, 33% plus petit. Ajouter frag flags = obligatoire |
 
 ---
 
