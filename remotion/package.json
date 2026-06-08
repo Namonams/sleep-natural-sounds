@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "npx remotion studio",
-    "render:rain": "npx remotion render RainLoop out/rain-loop-30s.mp4 --props='{\"seed\":42}'",
-    "render:rain:hd": "npx remotion render RainLoop out/rain-loop-30s.mp4 --props='{\"seed\":42}' --codec=h264 --crf=20"
+    "render:rain": "npx remotion render RainLoop out/rain-loop-10s.mp4 --props='{\"seed\":42}'",
+    "render:rain:hd": "npx remotion render RainLoop out/rain-loop-10s.mp4 --props='{\"seed\":42}' --codec=h264 --crf=20"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.448",
