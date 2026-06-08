@@ -1,0 +1,44 @@
+{
+  "month": "2026-05",
+  "generatedAt": "2026-06-08T16:57:06.729Z",
+  "channel": {
+    "subscribers": {
+      "end": 1,
+      "gained": 1
+    },
+    "views": {
+      "thisMonth": 11,
+      "cumulative": 11
+    },
+    "watchTime": {
+      "thisMonth": 6,
+      "cumulative": 6,
+      "targetHours": 4000,
+      "progressPct": 0.2
+    }
+  },
+  "yppProgress": {
+    "subscribers": {
+      "current": 1,
+      "target": 1000,
+      "pct": 0.1
+    },
+    "watchTime": {
+      "current": 6,
+      "target": 4000,
+      "pct": 0.2
+    },
+    "eta": null
+  },
+  "videos": [
+    {
+      "id": "10KZSY5Y-MM",
+      "title": "(No Ads) 🌙 Pink Noise for Babies | Black Screen | 11 Hours Deep Sleep",
+      "views": 11,
+      "likes": 2,
+      "comments": 0,
+      "publishedAt": "2026-06-02T05:00:40Z"
+    }
+  ],
+  "history": []
+}
