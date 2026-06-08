@@ -4,7 +4,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
 const W = 1280;
 const H = 720;
 const FPS = 24;
-const TOTAL_S = 30;
+const TOTAL_S = 10;
 const DROP_COUNT = 220;
 
 // Angle pluie (légèrement diagonal, naturel)
