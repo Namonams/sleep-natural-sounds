@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * *'  # toutes les heures H24
   workflow_dispatch:       # lancement manuel possible
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
