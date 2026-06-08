@@ -40,12 +40,21 @@ async function getAuth() {
       oauth2.setCredentials(credentials);
       return oauth2;
     } catch(e) {
-      log('Token invalide — re-auth requis');
+      log(`Token refresh échoué: ${e.message}`);
       fs.unlinkSync(TOKEN_FILE);
+      if (process.env.GITHUB_ACTIONS) {
+        log('ERREUR CI: token invalide. Relancer OAuth localement puis mettre à jour le secret YT_TOKEN.');
+        process.exit(1);
+      }
     }
   }
 
-  // OAuth2 flow
+  if (process.env.GITHUB_ACTIONS) {
+    log('ERREUR CI: aucun token valide. OAuth interactif impossible en CI. Exécuter `node sync_stats.js` localement pour générer le token.');
+    process.exit(1);
+  }
+
+  // OAuth2 flow (local uniquement)
   const authUrl = oauth2.generateAuthUrl({ access_type: 'offline', scope: SCOPES, prompt: 'consent' });
   log('AUTORISATION REQUISE — ouvre ce lien:');
   log(authUrl);
