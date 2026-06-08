@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$VideoFile  = "",
     [string]$AudioFile  = "",
     [string]$OutputName = "",
@@ -41,7 +41,7 @@ if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out
 $TmpDir      = "C:\tmp_sleep"
 New-Item -ItemType Directory -Force -Path $TmpDir | Out-Null
 $TargetSec   = $Hours * 3600
-$LoopedAudio = "$TmpDir\aloop.mp3"
+$LoopedAudio = "$TmpDir\aloop.aac"
 $FinalOutput = Join-Path $OutDir "${OutputName}_${Hours}h_FINAL.mp4"
 $ListFile    = "$TmpDir\list.txt"
 $TmpVideo    = "$TmpDir\vid.mp4"
@@ -93,11 +93,11 @@ $volLines = & ffmpeg -i "$TmpAudio" -af "volumedetect" -f null - 2>&1
 $meanLine = $volLines | Where-Object { $_ -match "mean_volume" } | Select-Object -First 1
 if ($meanLine) { Write-Host "  $meanLine" -ForegroundColor Cyan }
 # Etape 2a: loudnorm sur source courte uniquement (~10 sec)
-$NormSource = "$TmpDir\norm_src.mp3"
+$NormSource = "$TmpDir\norm_src.aac"
 Write-Host "  Normalisation source courte..." -ForegroundColor Gray
 $loudErr = ffmpeg -i "$TmpAudio" `
     -af "loudnorm=I=-14:TP=-1.5:LRA=11" `
-    -c:a libmp3lame -b:a 192k "$NormSource" -y 2>&1
+    -c:a aac -b:a 128k "$NormSource" -y 2>&1
 if (-not (Test-Path $NormSource) -or (Get-Item $NormSource).Length -lt 1000) {
     Write-Host "  FFmpeg stderr: $($loudErr | Select-Object -Last 5 | Out-String)" -ForegroundColor Red
     Write-Err "Echec loudnorm source"
@@ -125,8 +125,9 @@ if ($NeedsEncode) {
     ffmpeg -f concat -safe 0 -i "$ListFile" `
            -i "$LoopedAudio" `
            -map 0:v:0 -map 1:a:0 `
-           -c:v libx264 -crf 28 -preset fast -r 24 `
+           -c:v libx264 -crf 32 -preset medium -r 24 `
            -c:a copy `
+           -movflags "+frag_keyframe+empty_moov" `
            -t $TargetSec `
            "$FinalOutput" -y 2>&1 | Out-Null
 } else {
