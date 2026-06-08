@@ -1,12 +1,18 @@
 # Sleep Natural Sounds — CLAUDE.md
-# Le 2nd Cerveau du Projet | Mise à jour: 2026-06-02
+# Le 2nd Cerveau du Projet | Mise à jour: 2026-06-08
 
 ## 📺 ÉTAT CHAÎNE — MIS À JOUR CHAQUE SESSION
-| Vidéo | ID YouTube | Statut | Date |
-|-------|-----------|--------|------|
-| Pink Noise for Babies 11h | `10KZSY5Y-MM` | **PUBLIC** — publié 2026-06-02 07:00 | 2026-06-02 |
-| Ancient Campfire 11h | `i3OvPXCjI4A` | Uploadé 2026-06-08 · Schedulé **mardi 09/06 07:00** | 2026-06-08 |
-| White Noise (silencieuse) | `PW4yXKyGFL4` | **À SUPPRIMER** | 2026-05-19 |
+| # | Vidéo | ID YouTube | Statut | Pub |
+|---|-------|-----------|--------|-----|
+| V1 | Pink Noise for Babies 11h | `10KZSY5Y-MM` | ✅ PUBLIC | 2026-06-02 |
+| V2 | Ancient Campfire 11h | _(en cours)_ | 🔄 ENCODE (FFmpeg PID 9288) → upload auto post_encode_campfire.ps1 → MARDI 16/06 07:00 | 2026-06-16 |
+| V3 | Heavy Rain on Cabin Roof 11h | — | 🎬 REMOTION RAIN RENDU (rain-loop-30s.mp4) → pipeline à lancer après V2 | 2026-06-23 |
+| V4 | Deep Meditation Music 10h | — | 📋 PLANIFIÉ | 2026-06-30 |
+| — | White Noise (silencieuse) | `PW4yXKyGFL4` | 🗑️ À SUPPRIMER | — |
+
+## 📋 PLAN 2 MOIS (V3→V8)
+Voir `PLAN_2_MOIS.md` — contenu pré-écrit pour 6 vidéos supplémentaires (titres, descriptions, tags, pipeline, thumbnail).
+Voir `MEMOIRE_COMPLETE.md` — backup complet de toute la mémoire équipe.
 
 **⚠️ RÈGLE MAJ DASHBOARD**: Mettre à jour ce tableau ET `dashboard/index.html` (statut vidéo) à chaque session ET toutes les 3 échanges si changement de statut YT.
 
@@ -16,7 +22,7 @@
 
 **Canal**: Sleep Natural Sounds (`sleepnaturalsounds@gmail.com`)
 **Concept**: Chaîne YouTube de sons ambiants 10-11h — zéro pub, qualité maximale, croissance organique.
-**Cadence**: 1 vidéo/semaine, publication mardi 07:00 Paris (règle fixe — jamais lundi).
+**Cadence**: 1 vidéo/semaine, publication **MARDI 07:00 Paris** (règle fixe — jamais lundi).
 **Durée standard**: **11h exactement** pour TOUTES les vidéos — aucune exception.
 **Horizon monétisation**: 6-12 mois (1000 abonnés + 4000h watch time).
 **Philosophie**: **Ihsan** — chaque vidéo produite avec excellence et éthique. Pas de raccourci.
@@ -400,12 +406,15 @@ node scripts/upload_youtube.js
 ## ⚙️ Config Technique
 
 ```
-FFmpeg: tools/ffmpeg-master-latest-win64-gpl/bin/ (portable, v N-124445)
-Node.js: scripts/ (googleapis, OAuth2 Desktop)
+FFmpeg:     tools/ffmpeg-master-latest-win64-gpl/bin/ (portable, v N-124445)
+Node.js:   scripts/ (googleapis, OAuth2 Desktop)
+Remotion:  Downloads/01_NAMONAMS/NamoBraso-Site/namobraso-video/ (v4.0.448)
+           → src/videos/RainLoop.tsx = composition pluie 30s loopable
+           → render: cd namobraso-video && .\node_modules\.bin\remotion.cmd render src/index.ts RainLoop out/rain-loop-30s.mp4
 Canva MCP: mcp__claude_ai_Canva__* (designs dans compte Canva)
-OAuth2 Project: sleep-channel-yt
-Canal YouTube: sleepnaturalsounds@gmail.com
-Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
+OAuth2:    sleep-channel-yt (sleepnaturalsounds@gmail.com)
+Disk C:    237.9 GB total — état 2026-06-08: 33 GB libres (ok ✅)
+           SEUIL CRITIQUE: < 10 GB → STOP tout pipeline, nettoyer d'abord
 ```
 
 ---
@@ -426,7 +435,7 @@ Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
 
 1. **Monétisation AVANT Public** — toujours passer par Non répertoriée d'abord
 2. **Sources Pixabay** — vérifier licence libre avant tout usage
-3. **Disk space** — vérifier >20 GB libre avant pipeline. Supprimer fichiers inutiles en priorité.
+3. **Disk space** — vérifier >20 GB libre avant pipeline. SEUIL CRITIQUE = 10 GB → STOP tout. Caches Chrome+Temp = jusqu'à 28 GB récupérables (rm AppData/Local/Temp + Chrome/Cache + Edge/Cache).
 4. **Nettoyage permanent** — supprimer tout fichier tmp/corrompu/inutilisé dès que possible
 5. **Vérif audio** — tester volume source avant pipeline (doit etre > -30 dB)
 6. **Ihsan** — qualité > quantité. Chaque vidéo = meilleure possible.
@@ -438,33 +447,33 @@ Disk C: total 237.9 GB — garder >20 GB libre (pipeline besoin ~25 GB)
 - Sources Pixabay brutes dans `assets/audio/` — garder seulement si réutilisées
 - Fichiers 0 bytes ou corrompus — supprimer immédiatement
 
-
 ---
 
-## 📈 XP LOG — Second Cerveau Vivant
-> Jamais effacé. Chaque session = données cumulées. Lire avant d'agir.
+## 📈 XP LOG — Mémoire Cumulative Sessions
 
 | Date | Action | Résultat | Leçon |
 |------|--------|----------|-------|
-| 2026-06-02 | Publication V1 Pink Noise | ✅ 1 sub, 11 vues, 2 likes | Première vidéo publique — audience existe |
-| 2026-06-08 | Fix GitHub Actions sync YT | ✅ BOM + token + write perms | 3 bugs en cascade : secret encodage BOM, token 7j app Testing, workflow sans `contents: write` |
-| 2026-06-08 | OAuth re-auth | ✅ Token valide, invalid_grant résolu | App Google mode Testing = refresh tokens expirent 7j → passer en Production |
-| 2026-06-08 | Upload V2 Ancient Campfire | ✅ Video ID `i3OvPXCjI4A`, 3.1 min @ 19 MB/s | API upload fonctionne, thumbnail auto-uploadée |
-| 2026-06-08 | Rapport mensuel auto | ✅ Workflow + GitHub issue notification | 1er du mois 07:00 UTC → JSON cumulatif + issue créée |
-| 2026-06-08 | Campfire encode corrompu | ⚠️ moov atom manquant → YouTube reject | Disk full (2GB libre) = encode interrompu avant écriture moov. **RÈGLE : vérifier >10GB libre avant tout pipeline 11h** |
-| 2026-06-08 | CORRECTION date publication | ⚠️ Lundi → Mardi 09/06 | RÈGLE : chaque MARDI 07:00 Paris. Corriger dans TOUS les fichiers. |
-| 2026-06-08 | Dashboard calendrier fix | ✅ "Mardi 9 juin", date 09/06, status uploaded | Seed data figée = data incohérente. Règle : seed data = toujours synchronisée avec réalité |
+| 2026-06-02 | V1 Pink Noise — premier pipeline + upload | ✅ PUBLIC `10KZSY5Y-MM` | Pipeline fonctionnel. Sources dans C:\tmp_sleep évite problème apostrophe |
+| 2026-06-03 | V2 Campfire — premier encode | ❌ Moov atom manquant (disk full pendant encode) | Toujours vérifier >20 GB AVANT encode. `-movflags +frag_keyframe+empty_moov` pour encode fragmenté |
+| 2026-06-08 | GitHub Actions sync_stats réparé | ✅ 3 bugs: BOM secrets + token expiré + permissions write | BOM PS5.1: jamais pipe string vers gh, toujours `cmd /c < tmpfile`. Token Testing mode = 7j max |
+| 2026-06-08 | V2 Campfire re-encode (CRF 30, frag) | 🔄 En cours FFmpeg PID 9288 | CRF 30 + frag = ~1-2 GB pour 11h, survit coupure disk |
+| 2026-06-08 | Disk C: 4.8 GB → 33 GB | ✅ +28 GB: caches Chrome+Edge+Temp | Caches navigateurs = jusqu'à 30 GB sur Windows. Nettoyage = 1ère action si disk serré |
+| 2026-06-08 | Remotion Rain composition créée | ✅ Test 3s OK (152 kB) — render 30s en cours | Remotion dans NamoBraso-video (v4.0.448) réutilisable. Render: `.\node_modules\.bin\remotion.cmd render` |
+| 2026-06-08 | pipeline auto post_encode_campfire.ps1 | 🔄 En attente fin FFmpeg | Capture VIDEO_ID depuis output upload → env YT_VIDEO_ID → schedule_publish.js |
 
-### Règles déduites de l'XP
-- **Token Google** : re-OAuth tous les 7 jours si app en mode Testing → passer app en **Production** (Google Cloud Console → OAuth consent screen)
-- **Secrets GitHub** : toujours setter via `cmd /c "gh secret set X < file"` sur Windows (pas pipe PowerShell → BOM)
-- **Publication** : MARDI 07:00 Paris, jamais lundi
-- **Dashboard** : après chaque upload/publication → mettre à jour `editorialCal` + status vidéo dans index.html
-- **Méditation** : à intégrer dans la rotation — V3 ou V4 = thème méditation/zen
+---
 
+## 🔄 AUTO-MAJ — Règle Cerveau Vivant
 
+**Le Team met à jour ce fichier :**
+- **Début session** : lire XP LOG → ne pas répéter erreurs passées
+- **Fin session** : ajouter 1 ligne XP LOG par décision/résultat majeur
+- **Changement statut vidéo** : mettre à jour tableau ÉTAT CHAÎNE immédiatement
+- **Disk space** : si < 20 GB → nettoyer AVANT toute action + noter dans XP LOG
 
-### Règle critique ajoutée 2026-06-08
-- **AVANT tout pipeline 11h** : `(Get-PSDrive C).Free/1GB` → doit être **>10 GB** (output ~3GB + tmp ~1GB + marge)
-- **Movflags** : utiliser `+frag_keyframe+empty_moov` pour les encodes longs → survit aux interruptions
-- **Vidéo YouTube "Traitement abandonné"** = fichier MP4 sans moov atom = encode interrompu → supprimer et re-encoder
+**Script de check rapide (copier-coller début session) :**
+```powershell
+$free = [math]::Round((Get-PSDrive C).Free/1GB,1)
+$enc = Get-Process ffmpeg -EA SilentlyContinue
+Write-Host "Disk: $free GB | FFmpeg: $(if($enc){'ACTIF PID '+$enc.Id}else{'non actif'})"
+```
