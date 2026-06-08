@@ -632,6 +632,7 @@
   .dot-planned   { background: var(--muted); }
   .dot-encoding  { background: var(--warning); animation: pulse 1.5s infinite; }
   .dot-uploaded  { background: #93c5fd; }
+  .dot-danger    { background: var(--danger); }
   .dot-public    { background: var(--success); }
   .dot-monetized { background: var(--gold); }
   .week-empty { font-size: 12px; color: var(--muted); font-style: italic; }
@@ -1104,13 +1105,13 @@ function saveData(data) {
 let DB = loadData();
 
 // Force migration editorialCal — publication chaque MARDI à 07:00
-if (!DB.editorialCal || !DB.editorialCal['2026-06-02']) {
+if (!DB.editorialCal || !DB.editorialCal['2026-06-16']) {
   DB.editorialCal = Object.assign(DB.editorialCal || {}, {
-    '2026-06-02': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public',   ytId: '10KZSY5Y-MM', pubTime: '07:00' },
-    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'uploaded', ytId: 'i3OvPXCjI4A',           pubTime: '07:00' },
-    '2026-06-16': { niche: 'campfire',   title: 'Ancient Campfire · 11H (re-upload)', status: 'encoding', ytId: null,           pubTime: '07:00' },
-    '2026-06-23': { niche: 'rain',       title: 'Heavy Rain on Cabin Roof · 11H',     status: 'planned',  ytId: null,           pubTime: '07:00' },
-    '2026-06-30': { niche: 'other',      title: 'Deep Meditation Tibetan Bowls · 10H',status: 'planned',  ytId: null,           pubTime: '07:00' }
+    '2026-06-02': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H',  status: 'public',   ytId: '10KZSY5Y-MM', pubTime: '07:00' },
+    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H (échoué)',         status: 'failed',   ytId: null,           pubTime: '07:00' },
+    '2026-06-16': { niche: 'campfire',   title: '(No Ads) Ancient Campfire Sounds · 11H', status: 'encoding', ytId: null,           pubTime: '07:00' },
+    '2026-06-23': { niche: 'rain',       title: '(No Ads) Heavy Rain on Cabin Roof · 11H',status: 'planned',  ytId: null,           pubTime: '07:00' },
+    '2026-06-30': { niche: 'other',      title: '(No Ads) Deep Meditation Music · 10H',   status: 'planned',  ytId: null,           pubTime: '07:00' }
   });
   saveData(DB);
 }
@@ -1642,7 +1643,8 @@ const CAL_STATUS_META = {
   'encoding':  { label: 'Encodage',   dot: 'dot-encoding'  },
   'uploaded':  { label: 'Uploadé',    dot: 'dot-uploaded'  },
   'public':    { label: 'Public ✅',   dot: 'dot-public'   },
-  'monetized': { label: '💰 Monétisé', dot: 'dot-monetized' }
+  'monetized': { label: '💰 Monétisé', dot: 'dot-monetized' },
+  'failed':    { label: '❌ Échoué',   dot: 'dot-danger'   }
 };
 
 function getMonday(d) {
@@ -1755,7 +1757,9 @@ function seedEditorialCalFromVideos() {
 
   // Planifications fixes (à maintenir manuellement ici)
   const fixedPlans = {
-    '2026-06-09': { niche: 'campfire', title: 'Ancient Campfire 11H', status: 'uploaded' }
+    '2026-06-16': { niche: 'campfire', title: '(No Ads) Ancient Campfire Sounds · 11H', status: 'encoding', pubTime: '07:00' },
+    '2026-06-23': { niche: 'rain',     title: '(No Ads) Heavy Rain on Cabin Roof · 11H',status: 'planned',  pubTime: '07:00' },
+    '2026-06-30': { niche: 'other',    title: '(No Ads) Deep Meditation Music · 10H',   status: 'planned',  pubTime: '07:00' }
   };
   for (const [k, v] of Object.entries(fixedPlans)) {
     if (!DB.editorialCal[k]) DB.editorialCal[k] = v;
@@ -1768,8 +1772,9 @@ function seedEditorialCalFromVideos() {
 // COUNTDOWN PROCHAINE VIDÉO
 // ─────────────────────────────────────────────
 const NEXT_VIDEOS = [
-  { title: 'Ancient Campfire · 11H', date: '2026-06-09T07:00:00+02:00' },
-  // Ajouter prochaines vidéos ici
+  { title: '(No Ads) Ancient Campfire · 11H', date: '2026-06-16T07:00:00+02:00' },
+  { title: '(No Ads) Heavy Rain on Cabin Roof · 11H', date: '2026-06-23T07:00:00+02:00' },
+  { title: '(No Ads) Deep Meditation Music · 10H',    date: '2026-06-30T07:00:00+02:00' },
 ];
 
 function updateCountdown() {
@@ -1969,5 +1974,3 @@ init();
 </script>
 </body>
 </html>
-
-
