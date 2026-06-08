@@ -3,7 +3,7 @@ import { Composition } from 'remotion';
 import { RainLoop } from './videos/RainLoop';
 
 const FPS = 24;
-const DURATION_S = 30;
+const DURATION_S = 10;
 
 export const RemotionRoot: React.FC = () => (
   <>
