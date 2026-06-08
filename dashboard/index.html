@@ -768,7 +768,7 @@
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Prochaine publication</div>
         <div id="nextVideoTitle" style="font-size:16px;font-weight:800;color:var(--cream)">Ancient Campfire · 11H</div>
-        <div id="nextVideoDate" style="font-size:12px;color:var(--gold);margin-top:3px">Mardi 9 juin 2026 · 07:00</div>
+        <div id="nextVideoDate" style="font-size:12px;color:var(--gold);margin-top:3px">Mardi 16 juin 2026 · 07:00</div>
       </div>
       <div id="countdown" style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;font-variant-numeric:tabular-nums">--:--:--:--</div>
     </div>
@@ -1107,7 +1107,10 @@ let DB = loadData();
 if (!DB.editorialCal || !DB.editorialCal['2026-06-02']) {
   DB.editorialCal = Object.assign(DB.editorialCal || {}, {
     '2026-06-02': { niche: 'baby-sleep', title: '(No Ads) Pink Noise for Babies · 11H', status: 'public',   ytId: '10KZSY5Y-MM', pubTime: '07:00' },
-    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'uploaded', ytId: 'i3OvPXCjI4A',           pubTime: '07:00' }
+    '2026-06-09': { niche: 'campfire',   title: 'Ancient Campfire · 11H',               status: 'uploaded', ytId: 'i3OvPXCjI4A',           pubTime: '07:00' },
+    '2026-06-16': { niche: 'campfire',   title: 'Ancient Campfire · 11H (re-upload)', status: 'encoding', ytId: null,           pubTime: '07:00' },
+    '2026-06-23': { niche: 'rain',       title: 'Heavy Rain on Cabin Roof · 11H',     status: 'planned',  ytId: null,           pubTime: '07:00' },
+    '2026-06-30': { niche: 'other',      title: 'Deep Meditation Tibetan Bowls · 10H',status: 'planned',  ytId: null,           pubTime: '07:00' }
   });
   saveData(DB);
 }
@@ -1966,4 +1969,5 @@ init();
 </script>
 </body>
 </html>
+
 
